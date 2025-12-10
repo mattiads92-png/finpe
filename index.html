@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe Cloud v3.1</title>
+    <title>FinPe Cloud v3.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -511,12 +511,11 @@
                     }
                 };
 
-                // --- SAVE CATEGORY LOGIC (UPDATED FOR BUG FIX) ---
+                // --- SAVE CATEGORY LOGIC (CORRETTO) ---
                 document.getElementById('form-category').onsubmit = async (e) => {
                     e.preventDefault();
                     App.toggleLoader(true, "Salvataggio Categoria...");
                     try {
-                        // 1. Raccogliamo i dati grezzi
                         const rawData = {
                             id: document.getElementById('c-id').value,
                             name: document.getElementById('c-name').value,
@@ -524,22 +523,11 @@
                             budget: parseFloat(document.getElementById('c-budget').value) || 0,
                             target: parseFloat(document.getElementById('c-target').value) || 0
                         };
-
-                        // 2. Creiamo la copia pulita senza ID (La soluzione sicura)
                         const { id, ...dataToSave } = rawData;
-
-                        // 3. Salvataggio
-                        if (rawData.id) {
-                            // Se c'è l'ID, è una modifica (passiamo rawData che contiene l'ID)
-                            await Store.updateCat(rawData); 
-                        } else {
-                            // Se è nuovo, usiamo i dati puliti (senza ID)
-                            await Store.addCat(dataToSave); 
-                        }
-
+                        if (rawData.id) await Store.updateCat(rawData); else await Store.addCat(dataToSave);
                         this.closeModals();
                     } catch (error) {
-                        console.error(error); // Utile per debug
+                        console.error(error);
                         alert("Errore salvataggio: " + error.message);
                     } finally {
                         App.toggleLoader(false);
@@ -720,7 +708,7 @@
                 const c = document.getElementById('view-container');
                 c.innerHTML = '';
                 if(this.view === 'dashboard') this.renderDash(c);
-                else if(this.view === 'funds') this.renderFunds(c);
+                else if(this.view === 'funds') this.renderFunds(c); // MODIFICATO QUI
                 else if(this.view === 'analysis') this.renderAnalysis(c);
                 else if(this.view === 'categories') this.renderCats(c);
             },
@@ -1032,7 +1020,7 @@
                 c.innerHTML = `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold dark:text-white">I Miei Fondi</h2><button onclick="App.openCatModal(null, 'transfer')" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-purple-700 transition">+ Nuovo</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${funds.map(f => {
                     const saved = Store.data.transactions.filter(t => t.category === f.id && t.status === 'done').reduce((acc, t) => acc + t.amount, 0);
                     const pct = f.target ? Math.max(0, Math.min(100, (saved / f.target) * 100)) : 0;
-                    return `<div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border border-purple-100 dark:border-purple-900/30"><div class="flex justify-between items-start mb-4"><div><h3 class="font-bold text-lg dark:text-white">${f.name}</h3><p class="text-xs text-gray-500">Obiettivo: € ${f.target.toLocaleString()}</p></div><div class="flex gap-2"><button onclick="App.openWithdrawModal('${f.id}')" class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition" title="Preleva"><i class="fas fa-money-bill-wave"></i></button><button onclick="App.openCatModal('${f.id}')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-pen"></i></button></div></div><div class="flex justify-between items-end mb-2"><span class="text-2xl font-bold text-purple-600 dark:text-purple-400">€ ${saved.toLocaleString()}</span><span class="text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded">${Math.round(pct)}%</span></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-3 rounded-full progress-fill" style="width: ${pct}%"></div></div></div>`;
+                    return `<div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border border-purple-100 dark:border-purple-900/30"><div class="flex justify-between items-start mb-4"><div><h3 class="font-bold text-lg dark:text-white">${f.name}</h3><p class="text-xs text-gray-500">Obiettivo: € ${f.target.toLocaleString()}</p></div><div class="flex gap-2"><button onclick="App.openWithdrawModal('${f.id}')" class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition" title="Preleva"><i class="fas fa-money-bill-wave"></i></button><button onclick="App.openCatModal('${f.id}')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-pen"></i></button><button onclick="if(confirm('Eliminare questo fondo?')) Store.delCat('${f.id}')" class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 transition" title="Elimina"><i class="fas fa-trash"></i></button></div></div><div class="flex justify-between items-end mb-2"><span class="text-2xl font-bold text-purple-600 dark:text-purple-400">€ ${saved.toLocaleString()}</span><span class="text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded">${Math.round(pct)}%</span></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-3 rounded-full progress-fill" style="width: ${pct}%"></div></div></div>`;
                 }).join('')}</div>`;
             },
 
