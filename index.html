@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe Cloud v3.0</title>
+    <title>FinPe Cloud v3.1</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -491,7 +491,7 @@
                                     ...dataToSave,
                                     date: currentDate.toISOString().slice(0, 10),
                                     status: 'planned', // Sempre pianificata per il futuro
-                                    // description: dataToSave.description + ` (${i}/${repeatMonths})` // Opzionale: contatore
+                                    // description: dataToSave.description + ` (${i}/${repeatMonths})` // Optional: add counter
                                 });
                             }
                             await batch.commit();
@@ -505,6 +505,41 @@
                         App.showToast("Salvato con successo");
                     } catch (error) {
                         console.error(error);
+                        alert("Errore salvataggio: " + error.message);
+                    } finally {
+                        App.toggleLoader(false);
+                    }
+                };
+
+                // --- SAVE CATEGORY LOGIC (UPDATED FOR BUG FIX) ---
+                document.getElementById('form-category').onsubmit = async (e) => {
+                    e.preventDefault();
+                    App.toggleLoader(true, "Salvataggio Categoria...");
+                    try {
+                        // 1. Raccogliamo i dati grezzi
+                        const rawData = {
+                            id: document.getElementById('c-id').value,
+                            name: document.getElementById('c-name').value,
+                            type: document.getElementById('c-type').value,
+                            budget: parseFloat(document.getElementById('c-budget').value) || 0,
+                            target: parseFloat(document.getElementById('c-target').value) || 0
+                        };
+
+                        // 2. Creiamo la copia pulita senza ID (La soluzione sicura)
+                        const { id, ...dataToSave } = rawData;
+
+                        // 3. Salvataggio
+                        if (rawData.id) {
+                            // Se c'è l'ID, è una modifica (passiamo rawData che contiene l'ID)
+                            await Store.updateCat(rawData); 
+                        } else {
+                            // Se è nuovo, usiamo i dati puliti (senza ID)
+                            await Store.addCat(dataToSave); 
+                        }
+
+                        this.closeModals();
+                    } catch (error) {
+                        console.error(error); // Utile per debug
                         alert("Errore salvataggio: " + error.message);
                     } finally {
                         App.toggleLoader(false);
