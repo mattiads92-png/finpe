@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe</title>
+    <title>FinPe Cloud v3.4</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -112,16 +112,13 @@
         <i class="fas fa-plus"></i>
     </button>
 
-    <div id="modal-forecast" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white dark:bg-dark-card w-full max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-transform transform translate-y-full sm:translate-y-0" id="forecast-modal-content">
+    <div id="modal-forecast" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all scale-95 opacity-0 flex flex-col max-h-[85vh]" id="forecast-modal-content">
             <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                <div>
-                    <h3 class="font-bold text-xl dark:text-white">Prossimi 60 Giorni</h3>
-                    <p class="text-xs text-gray-500">Movimenti previsti e pianificati</p>
-                </div>
+                <h3 class="font-bold text-lg" id="forecast-modal-title">Previsioni</h3>
                 <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
             </div>
-            <div id="forecast-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+            <div id="forecast-list" class="p-0 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
@@ -960,8 +957,18 @@
                         <div class="text-center"><div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Saldo Attuale (Definitivo)</div><div class="text-4xl font-extrabold ${proj >= 0 ? 'text-gray-800 dark:text-white' : 'text-red-500'}">€ ${proj.toLocaleString('it-IT', {minimumFractionDigits:2})}</div></div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-green-500 shadow-sm relative overflow-hidden cursor-pointer hover:scale-[1.02] transition" onclick="App.openForecastModal('income')"><div class="absolute right-[-10px] top-[-10px] text-green-500 opacity-10 text-6xl"><i class="fas fa-arrow-down"></i></div><div class="text-xs font-bold text-gray-400 uppercase">Entrate</div><div class="text-xl font-bold text-green-600 mt-1">€ ${s.income.r.toLocaleString()}</div><div class="text-xs text-gray-500 mt-1 font-medium bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-md inline-block">+ € ${s.income.p.toLocaleString()} prev.</div></div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-red-500 shadow-sm relative overflow-hidden cursor-pointer hover:scale-[1.02] transition" onclick="App.openForecastModal('expense')"><div class="absolute right-[-10px] top-[-10px] text-red-500 opacity-10 text-6xl"><i class="fas fa-arrow-up"></i></div><div class="text-xs font-bold text-gray-400 uppercase">Uscite</div><div class="text-xl font-bold text-red-600 mt-1">€ ${s.expense.r.toLocaleString()}</div><div class="text-xs text-gray-500 mt-1 font-medium bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md inline-block">+ € ${s.expense.p.toLocaleString()} prev.</div></div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-green-500 shadow-sm relative overflow-hidden">
+                            <div class="absolute right-[-10px] top-[-10px] text-green-500 opacity-10 text-6xl"><i class="fas fa-arrow-down"></i></div>
+                            <div class="text-xs font-bold text-gray-400 uppercase">Entrate</div>
+                            <div class="text-xl font-bold text-green-600 mt-1">€ ${s.income.r.toLocaleString()}</div>
+                            <button onclick="App.openForecastModal('income')" class="text-xs text-green-700 dark:text-green-300 mt-1 font-bold bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-md inline-block hover:scale-105 transition cursor-pointer underline decoration-dotted">+ € ${s.income.p.toLocaleString()} prev.</button>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-red-500 shadow-sm relative overflow-hidden">
+                            <div class="absolute right-[-10px] top-[-10px] text-red-500 opacity-10 text-6xl"><i class="fas fa-arrow-up"></i></div>
+                            <div class="text-xs font-bold text-gray-400 uppercase">Uscite</div>
+                            <div class="text-xl font-bold text-red-600 mt-1">€ ${s.expense.r.toLocaleString()}</div>
+                            <button onclick="App.openForecastModal('expense')" class="text-xs text-red-700 dark:text-red-300 mt-1 font-bold bg-red-50 dark:bg-red-900/30 px-2 py-1 rounded-md inline-block hover:scale-105 transition cursor-pointer underline decoration-dotted">+ € ${s.expense.p.toLocaleString()} prev.</button>
+                        </div>
                     </div>
                     <div class="grid grid-cols-7 gap-1 mb-2">${['L','M','M','G','V','S','D'].map(d=>`<div class="text-center text-xs font-bold text-gray-400">${d}</div>`).join('')}</div>
                     <div class="grid grid-cols-7 gap-1" id="cal-grid"></div>
@@ -983,11 +990,57 @@
                 }
             },
 
+            // --- NUOVA FUNZIONE PER APRIRE LE PREVISIONI ---
+            openForecastModal(type) {
+                const m = document.getElementById('modal-forecast');
+                const c = document.getElementById('forecast-modal-content');
+                const list = document.getElementById('forecast-list');
+                const title = document.getElementById('forecast-modal-title');
+
+                const typeName = type === 'income' ? 'Entrate' : 'Uscite';
+                title.textContent = `Prossime ${typeName} (60gg)`;
+
+                // Calcolo date
+                const today = new Date();
+                const limit = new Date();
+                limit.setDate(today.getDate() + 60);
+                const todayStr = today.toISOString().slice(0, 10);
+                const limitStr = limit.toISOString().slice(0, 10);
+
+                // Filtro: solo Planned, solo del tipo scelto, data >= oggi e <= oggi+60
+                const items = Store.data.transactions.filter(t => 
+                    t.status === 'planned' && 
+                    t.type === type && 
+                    t.date >= todayStr && 
+                    t.date <= limitStr
+                ).sort((a, b) => new Date(a.date) - new Date(b.date)); // Ordine cronologico ascendente (prima le più vicine)
+
+                list.innerHTML = items.length ? items.map(t => {
+                    const catName = Store.data.categories.find(c => c.id === t.category)?.name || '???';
+                    const color = type === 'income' ? 'text-green-600' : 'text-red-600';
+                    return `
+                        <div class="flex justify-between items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)">
+                            <div>
+                                <div class="text-xs font-bold text-gray-400">${new Date(t.date).toLocaleDateString()}</div>
+                                <div class="font-bold text-sm dark:text-gray-200">${catName}</div>
+                                <div class="text-xs text-gray-500">${t.description}</div>
+                            </div>
+                            <div class="font-bold ${color} text-sm whitespace-nowrap">€ ${t.amount.toLocaleString()}</div>
+                        </div>
+                    `;
+                }).join('') : '<div class="text-center text-gray-400 py-4">Nessuna previsione trovata.</div>';
+
+                m.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    c.classList.remove('scale-95', 'opacity-0');
+                    c.classList.add('scale-100', 'opacity-100');
+                });
+            },
+
             openDayModal(dateStr, transactions) {
                 const modal = document.getElementById('modal-day');
                 const content = document.getElementById('day-modal-content'); const list = document.getElementById('day-list');
                 
-                // SAVE THE DATE FOR REFRESH
                 content.dataset.currentDate = dateStr;
 
                 modal.classList.remove('hidden'); requestAnimationFrame(() => { content.classList.remove('translate-y-full'); content.classList.add('translate-y-0'); });
@@ -1005,67 +1058,6 @@
                     else if (t.type === 'expense') colorClass = t.status === 'planned' ? 'text-red-400' : 'text-red-600';
                     else colorClass = t.status === 'planned' ? 'text-purple-400' : 'text-purple-600';
                     div.innerHTML = `<div class="flex items-center gap-3 flex-1"><div class="flex-1"><div class="font-bold text-sm dark:text-gray-200">${cat}</div><div class="text-xs text-gray-500">${t.description || ''}</div></div></div><div class="flex items-center gap-4"><div class="font-bold ${colorClass} whitespace-nowrap text-sm">${t.type==='income'?'+':(t.type==='transfer'&&t.amount<0?'+':'-')} € ${Math.abs(t.amount).toLocaleString()}</div><button onclick="event.stopPropagation(); App.toggleStatus('${t.id}')" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${t.status==='done'?'bg-green-500':'bg-gray-300 dark:bg-gray-600'}"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${t.status==='done'?'translate-x-6':'translate-x-1'}"/></button></div>`;
-                    list.appendChild(div);
-                });
-            },
-
-            openForecastModal(filterType = null) {
-                const modal = document.getElementById('modal-forecast');
-                const content = document.getElementById('forecast-modal-content');
-                const list = document.getElementById('forecast-list');
-
-                modal.classList.remove('hidden'); 
-                requestAnimationFrame(() => { 
-                    content.classList.remove('translate-y-full'); 
-                    content.classList.add('translate-y-0'); 
-                });
-
-                // Calculate range: Today to Today + 60 days
-                const today = new Date();
-                today.setHours(0,0,0,0);
-                const limitDate = new Date(today);
-                limitDate.setDate(limitDate.getDate() + 60);
-                const todayStr = today.toISOString().slice(0, 10);
-                const limitStr = limitDate.toISOString().slice(0, 10);
-
-                // Filter transactions
-                const forecastData = Store.data.transactions.filter(t => {
-                    const tDate = t.date;
-                    // Logic: Must be between today and limit AND (status is planned OR date is future)
-                    return tDate >= todayStr && tDate <= limitStr && t.status === 'planned';
-                }).sort((a, b) => new Date(a.date) - new Date(b.date)); // Chronological order
-
-                // Optionally filter by type (if clicked specifically on income or expense box)
-                const finalData = filterType ? forecastData.filter(t => t.type === filterType) : forecastData;
-
-                list.innerHTML = finalData.length === 0 ? `<div class="text-center text-gray-400 py-8">Nessuna transazione pianificata nei prossimi 60 giorni.</div>` : '';
-
-                finalData.forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category)?.name || '???';
-                    const div = document.createElement('div');
-                    // Style: Import on LEFT, Text on RIGHT
-                    div.className = `flex items-center p-3 rounded-xl border dark:border-dark-border bg-gray-50 dark:bg-gray-800 border-dashed hover:bg-white dark:hover:bg-dark-card transition cursor-pointer`;
-                    div.onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(t), 200); };
-
-                    let colorClass = '';
-                    if (t.type === 'income') colorClass = 'text-green-500';
-                    else if (t.type === 'expense') colorClass = 'text-red-500';
-                    else colorClass = 'text-purple-500';
-
-                    // Layout requested: "a sinistra la cifra"
-                    div.innerHTML = `
-                        <div class="mr-4 min-w-[80px] text-right">
-                             <div class="font-bold ${colorClass} text-lg">€ ${Math.abs(t.amount).toLocaleString()}</div>
-                             <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">${t.type === 'income' ? 'Entrata' : 'Uscita'}</div>
-                        </div>
-                        <div class="flex-1 border-l pl-4 dark:border-gray-700">
-                            <div class="font-bold text-sm dark:text-gray-200">${cat}</div>
-                            <div class="text-xs text-gray-500 mb-1">${t.description || ''}</div>
-                            <div class="text-xs font-medium bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300 inline-block px-2 py-0.5 rounded">
-                                ${new Date(t.date).toLocaleDateString('it-IT', {day: 'numeric', month: 'long'})}
-                            </div>
-                        </div>
-                    `;
                     list.appendChild(div);
                 });
             },
@@ -1103,11 +1095,8 @@
                 const type = t ? t.type : 'expense';
                 document.querySelectorAll('input[name="type"]').forEach(r => r.checked = (r.value === type)); this.popCats(type); if(t) document.getElementById('t-category').value = t.category;
                 
-                // Reset Repeat UI
                 document.getElementById('t-repeat').checked = false;
                 document.getElementById('repeat-options').classList.add('hidden');
-                
-                // Only show repeat option for NEW items, not edits (to avoid confusion)
                 document.getElementById('repeat-section').classList.toggle('hidden', !!t);
 
                 document.getElementById('btn-delete-trans').classList.toggle('hidden', !t);
@@ -1125,11 +1114,7 @@
                 document.querySelectorAll('.fixed').forEach(m => {
                     if(!m.classList.contains('hidden')) {
                         const c = m.querySelector('div[id$="-content"]');
-                        if(c) { 
-                            c.classList.remove('scale-100', 'opacity-100', 'translate-y-0'); 
-                            if(c.id === 'day-modal-content' || c.id === 'forecast-modal-content') c.classList.add('translate-y-full'); 
-                            else c.classList.add('scale-95', 'opacity-0'); 
-                        }
+                        if(c) { c.classList.remove('scale-100', 'opacity-100', 'translate-y-0'); if(c.id === 'day-modal-content') c.classList.add('translate-y-full'); else c.classList.add('scale-95', 'opacity-0'); }
                         setTimeout(() => m.classList.add('hidden'), 200);
                     }
                 });
@@ -1142,4 +1127,3 @@
     </script>
 </body>
 </html>
-
