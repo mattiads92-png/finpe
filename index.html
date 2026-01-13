@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe Mattia</title>
+    <title>FinPe 2.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -57,7 +57,7 @@
         <h1 class="font-black text-4xl tracking-tight text-slate-900 dark:text-white" style="font-family: 'Outfit', sans-serif;">
             Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
         </h1>
-        <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">Mattia</span>
+        <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.0</span>
     </div>
 </div>
             
@@ -84,10 +84,14 @@
 
     <header class="bg-white dark:bg-dark-card border-b dark:border-dark-border sticky top-0 z-40 shadow-sm safe-top">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">F</div>
-                <h1 class="font-bold text-xl tracking-tight hidden sm:block">FinPe</h1>
-            </div>
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="App.view='dashboard'; App.render();">
+    <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 transform transition group-hover:scale-105 group-hover:rotate-3" style="font-family: 'Outfit', sans-serif;">
+        F
+    </div>
+    <h1 class="font-bold text-2xl tracking-tight hidden sm:block text-slate-800 dark:text-white" style="font-family: 'Outfit', sans-serif;">
+        Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
+    </h1>
+</div>
             <div class="flex items-center gap-3">
                 <span id="user-email-display" class="text-xs text-gray-400 hidden sm:block"></span>
                 <button id="btn-logout" class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500" title="Esci">
@@ -1137,5 +1141,6 @@
     </script>
 </body>
 </html>
+
 
 
