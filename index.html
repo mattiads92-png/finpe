@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe</title>
+    <title>FinPe Mattia</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -46,10 +46,20 @@
 
     <div id="auth-overlay" class="fixed inset-0 z-[100] bg-gray-100 dark:bg-dark-bg flex flex-col items-center justify-center p-4">
         <div class="w-full max-w-md bg-white dark:bg-dark-card p-8 rounded-3xl shadow-2xl border dark:border-dark-border">
-            <div class="flex items-center justify-center gap-3 mb-8">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl">F</div>
-                <h1 class="font-bold text-3xl tracking-tight">FinPe Cloud</h1>
-            </div>
+           <div class="flex flex-col items-center justify-center gap-3 mb-10">
+    <div class="relative group">
+        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500"></div>
+        <div class="relative w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center text-white text-3xl font-black shadow-2xl transform transition group-hover:scale-105 group-hover:-rotate-3" style="font-family: 'Outfit', sans-serif;">
+            F<span class="text-blue-300">.</span>
+        </div>
+    </div>
+    <div class="text-center">
+        <h1 class="font-black text-4xl tracking-tight text-slate-900 dark:text-white" style="font-family: 'Outfit', sans-serif;">
+            Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
+        </h1>
+        <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">Mattia</span>
+    </div>
+</div>
             
             <div id="config-warning" class="hidden mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 rounded-xl text-sm border border-yellow-200 dark:border-yellow-800">
                 <p class="font-bold mb-1"><i class="fas fa-exclamation-triangle"></i> Configurazione Mancante</p>
@@ -1127,4 +1137,5 @@
     </script>
 </body>
 </html>
+
 
