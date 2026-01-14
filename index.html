@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 2.3 Analytics</title>
+    <title>FinPe</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -38,8 +38,13 @@
         .macro-check { transform: scale(1.3); cursor: pointer; }
         .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
+        
+        /* Stili per Accordion (Menu a tendina) */
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
+        details[open] summary ~ * { animation: sweep .3s ease-in-out; }
+        @keyframes sweep { 0% {opacity: 0; transform: translateY(-10px)} 100% {opacity: 1; transform: translateY(0)} }
+        
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -63,7 +68,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.3 Analytics</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.4 Cloud</span>
                 </div>
             </div>
             
@@ -261,6 +266,19 @@
                     if(d >= start && d <= end) { const k = t.status === 'done' ? 'r' : 'p'; s[t.type][k] += t.amount; }
                 });
                 return s;
+            },
+            getYearStats(year) {
+                let months = Array.from({length: 12}, () => ({ income: 0, expense: 0, balance: 0 }));
+                this.data.transactions.forEach(t => {
+                    const d = new Date(t.date);
+                    if(d.getFullYear() === year && t.status === 'done') {
+                        const m = d.getMonth();
+                        if(t.type === 'income') months[m].income += t.amount;
+                        else if(t.type === 'expense') months[m].expense += t.amount;
+                    }
+                });
+                months.forEach(m => m.balance = m.income - m.expense);
+                return months;
             }
         };
 
@@ -363,6 +381,66 @@
                 const c = document.getElementById('view-container'); c.innerHTML = '';
                 if(this.view === 'dashboard') this.renderDash(c); else if(this.view === 'funds') this.renderFunds(c); else if(this.view === 'analysis') this.renderAnalysis(c); else if(this.view === 'categories') this.renderCats(c);
             },
+            renderDash(c) {
+                const y = this.date.getFullYear(), m = this.date.getMonth();
+                const s = Store.getMonthStats(y, m);
+                const proj = s.balance + s.income.r - s.expense.r - s.transfer.r;
+                const dayTrans = Store.data.transactions.filter(t => t.date.startsWith(`${y}-${String(m+1).padStart(2,'0')}`));
+                
+                c.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3 bg-white dark:bg-dark-card rounded-full px-4 py-2 shadow-sm border border-gray-100 dark:border-gray-700">
+                            <button onclick="App.moveMonth(-1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-left"></i></button>
+                            <span class="text-sm font-bold capitalize text-slate-700 dark:text-gray-200 min-w-[100px] text-center">${new Intl.DateTimeFormat('it-IT', {month:'long'}).format(this.date)} ${y}</span>
+                            <button onclick="App.moveMonth(1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="App.exportCsv()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-green-600 hover:bg-gray-50 transition" title="Esporta CSV"><i class="fas fa-file-csv"></i></button>
+                            <input type="file" id="json-input" accept=".json" class="hidden" onchange="App.importJson(event)">
+                            <button onclick="document.getElementById('json-input').click()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-blue-600 hover:bg-gray-50 transition" title="Importa JSON"><i class="fas fa-file-import"></i></button>
+                        </div>
+                    </div>
+                    <div class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900 dark:from-slate-900 dark:to-slate-800 text-white p-6 rounded-3xl shadow-xl mb-8">
+                        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="relative z-10 text-center">
+                            <span class="text-blue-200 text-xs font-bold uppercase tracking-widest block mb-2">Saldo Attuale</span>
+                            <div class="text-3xl sm:text-5xl font-black tracking-tight break-words">€ ${proj.toLocaleString('it-IT', {minimumFractionDigits:2})}</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-green-500 shadow-sm relative overflow-hidden group hover:shadow-md transition">
+                            <div class="absolute right-[-10px] top-[-10px] text-green-500 opacity-10 text-6xl group-hover:scale-110 transition-transform"><i class="fas fa-arrow-down"></i></div>
+                            <div class="text-xs font-bold text-gray-400 uppercase">Entrate</div>
+                            <div class="text-xl font-bold text-green-600 mt-1">€ ${s.income.r.toLocaleString()}</div>
+                            <button onclick="App.openForecastModal('income')" class="mt-2 w-full text-center text-xs text-green-700 dark:text-green-300 font-bold bg-green-50 dark:bg-green-900/30 py-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition cursor-pointer">Previste: + € ${s.income.p.toLocaleString()}</button>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-red-500 shadow-sm relative overflow-hidden group hover:shadow-md transition">
+                            <div class="absolute right-[-10px] top-[-10px] text-red-500 opacity-10 text-6xl group-hover:scale-110 transition-transform"><i class="fas fa-arrow-up"></i></div>
+                            <div class="text-xs font-bold text-gray-400 uppercase">Uscite</div>
+                            <div class="text-xl font-bold text-red-600 mt-1">€ ${s.expense.r.toLocaleString()}</div>
+                            <button onclick="App.openForecastModal('expense')" class="mt-2 w-full text-center text-xs text-red-700 dark:text-red-300 font-bold bg-red-50 dark:bg-red-900/30 py-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition cursor-pointer">Previste: + € ${s.expense.p.toLocaleString()}</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 mb-2">${['L','M','M','G','V','S','D'].map(d=>`<div class="text-center text-xs font-bold text-gray-400">${d}</div>`).join('')}</div>
+                    <div class="grid grid-cols-7 gap-1" id="cal-grid"></div>
+                `;
+                const grid = document.getElementById('cal-grid');
+                const firstDay = new Date(y, m, 1).getDay() || 7;
+                for(let i=1; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+                for(let i=1; i<=new Date(y, m + 1, 0).getDate(); i++) {
+                    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                    const dTrans = dayTrans.filter(t => t.date === dateStr);
+                    let dayNet = dTrans.reduce((acc, t) => { if(t.type === 'income') return acc + t.amount; if(t.type === 'expense') return acc - t.amount; if(t.type === 'transfer') return acc - t.amount; return acc; }, 0);
+                    const hasPlanned = dTrans.some(t => t.status === 'planned');
+                    const colorClass = dayNet >= 0 ? (hasPlanned ? 'text-green-400' : 'text-green-600') : (hasPlanned ? 'text-red-400' : 'text-red-600');
+                    const cell = document.createElement('div');
+                    cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
+                    cell.onclick = () => this.openDayModal(dateStr, dTrans);
+                    cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${hasPlanned ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
+                    grid.appendChild(cell);
+                }
+            },
             renderAnalysis(c) {
                 const y = this.date.getFullYear(), m = this.date.getMonth();
                 c.innerHTML = `
@@ -396,116 +474,37 @@
             renderTrendsTab(c) {
                 if(!this.selectedTrendCat && Store.data.categories.length) this.selectedTrendCat = Store.data.categories[0].id;
                 const cat = Store.data.categories.find(x => x.id === this.selectedTrendCat);
-                
-                // Prepare Data
                 const history = {}; const monthlyAvg = {}; const topMonths = {};
                 const trans = Store.data.transactions.filter(t => t.category === this.selectedTrendCat && t.status === 'done').sort((a,b) => new Date(a.date) - new Date(b.date));
-                
                 trans.forEach(t => {
                     const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear();
                     if(!history[k]) history[k] = 0; history[k] += t.amount;
-                    if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() };
-                    monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
+                    if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() }; monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
                     if(!topMonths[y]) topMonths[y] = [];
                 });
-
-                // Build Top 3
-                Object.keys(history).forEach(ym => {
-                    const [y, m] = ym.split('-'); const val = history[ym];
-                    if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val});
-                });
+                Object.keys(history).forEach(ym => { const [y, m] = ym.split('-'); const val = history[ym]; if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val}); });
                 Object.keys(topMonths).forEach(y => { topMonths[y].sort((a,b) => b.v - a.v); topMonths[y] = topMonths[y].slice(0,3); });
-
                 let html = `
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Seleziona Categoria</label>
-                        <select id="trend-cat-sel" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.selectedTrendCat=this.value; App.render()">
-                            ${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name} (${cc.group||'Nessun gruppo'})</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <h3 class="font-bold mb-4 dark:text-white text-sm">Andamento Storico</h3>
-                        <div class="h-64 relative"><canvas id="chartHistory"></canvas></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile per Anno</h3>
-                            <div class="space-y-2">
-                                ${Object.keys(monthlyAvg).sort().reverse().map(y => {
-                                    const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1);
-                                    return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`;
-                                }).join('')}
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3>
-                            <div class="space-y-4">
-                                ${Object.keys(topMonths).sort().reverse().map(y => {
-                                    return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`;
-                                }).join('')}
-                            </div>
-                        </div>
-                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Seleziona Categoria</label><select id="trend-cat-sel" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.selectedTrendCat=this.value; App.render()">${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name} (${cc.group||'Nessun gruppo'})</option>`).join('')}</select></div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6"><h3 class="font-bold mb-4 dark:text-white text-sm">Andamento Storico</h3><div class="h-64 relative"><canvas id="chartHistory"></canvas></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile per Anno</h3><div class="space-y-2">${Object.keys(monthlyAvg).sort().reverse().map(y => { const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1); return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`; }).join('')}</div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3><div class="space-y-4">${Object.keys(topMonths).sort().reverse().map(y => { return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`; }).join('')}</div></div></div>
                 `;
                 c.innerHTML = html;
-                setTimeout(() => {
-                    const labels = Object.keys(history).sort(); const data = labels.map(k => history[k]);
-                    new Chart(document.getElementById('chartHistory'), { type: 'line', data: { labels, datasets: [{ label: 'Spesa', data, borderColor: '#3b82f6', tension: 0.2, fill: true, backgroundColor: '#3b82f610' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
-                }, 0);
+                setTimeout(() => { const labels = Object.keys(history).sort(); const data = labels.map(k => history[k]); new Chart(document.getElementById('chartHistory'), { type: 'line', data: { labels, datasets: [{ label: 'Spesa', data, borderColor: '#3b82f6', tension: 0.2, fill: true, backgroundColor: '#3b82f610' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } }, plugins: { legend: { display: false } } } }); }, 0);
             },
             renderAnnualTab(c, y) {
-                // Group Logic
                 const incomeGroups = {}; const expenseGroups = {};
                 Store.data.transactions.filter(t => t.status==='done' && new Date(t.date).getFullYear()===y).forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category);
-                    const groupName = (cat ? (cat.group || cat.name) : 'Altro');
+                    const cat = Store.data.categories.find(c => c.id === t.category); const groupName = (cat ? (cat.group || cat.name) : 'Altro');
                     const target = t.type === 'income' ? incomeGroups : (t.type === 'expense' ? expenseGroups : null);
-                    if(target) {
-                        if(!target[groupName]) target[groupName] = { val: 0, subs: {} };
-                        target[groupName].val += t.amount;
-                        const subName = cat ? cat.name : 'Sconosciuto';
-                        if(!target[groupName].subs[subName]) target[groupName].subs[subName] = 0;
-                        target[groupName].subs[subName] += t.amount;
-                    }
+                    if(target) { if(!target[groupName]) target[groupName] = { val: 0, subs: {} }; target[groupName].val += t.amount; const subName = cat ? cat.name : 'Sconosciuto'; if(!target[groupName].subs[subName]) target[groupName].subs[subName] = 0; target[groupName].subs[subName] += t.amount; }
                 });
-
-                let html = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-4 dark:text-white text-sm text-center">Entrate ${y} (per Macro-Gruppo)</h3>
-                            <div class="h-60 relative"><canvas id="pieInc"></canvas></div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-4 dark:text-white text-sm text-center">Uscite ${y} (per Macro-Gruppo)</h3>
-                            <div class="h-60 relative"><canvas id="pieExp"></canvas></div>
-                        </div>
-                    </div>
-                    <div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border">
-                        <h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500">Dettaglio Macro-Gruppi (Uscite)</h3>
-                        <div class="space-y-2">
-                `;
-                
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Entrate ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieInc"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Uscite ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieExp"></canvas></div></div></div><div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500">Dettaglio Macro-Gruppi (Uscite)</h3><div class="space-y-2">`;
                 Object.keys(expenseGroups).sort((a,b)=>expenseGroups[b].val - expenseGroups[a].val).forEach(g => {
                     const data = expenseGroups[g];
-                    html += `
-                        <details class="group border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
-                            <summary class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
-                                <div class="font-bold dark:text-white flex items-center gap-2"><i class="fas fa-chevron-right text-xs text-gray-400 group-open:rotate-90 transition"></i> ${g}</div>
-                                <div class="font-bold text-red-600">€ ${data.val.toLocaleString()}</div>
-                            </summary>
-                            <div class="p-3 bg-white dark:bg-dark-card border-t dark:border-gray-700">
-                                ${Object.keys(data.subs).sort((a,b)=>data.subs[b]-data.subs[a]).map(s => `
-                                    <div class="flex justify-between py-1 text-sm">
-                                        <span class="text-gray-600 dark:text-gray-300 pl-4 border-l-2 border-gray-200 dark:border-gray-600">${s}</span>
-                                        <span class="font-medium dark:text-white">€ ${data.subs[s].toLocaleString()}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </details>
-                    `;
+                    html += `<details class="group border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden"><summary class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"><div class="font-bold dark:text-white flex items-center gap-2"><i class="fas fa-chevron-right text-xs text-gray-400 group-open:rotate-90 transition"></i> ${g}</div><div class="font-bold text-red-600">€ ${data.val.toLocaleString()}</div></summary><div class="p-3 bg-white dark:bg-dark-card border-t dark:border-gray-700">${Object.keys(data.subs).sort((a,b)=>data.subs[b]-data.subs[a]).map(s => `<div class="flex justify-between py-1 text-sm"><span class="text-gray-600 dark:text-gray-300 pl-4 border-l-2 border-gray-200 dark:border-gray-600">${s}</span><span class="font-medium dark:text-white">€ ${data.subs[s].toLocaleString()}</span></div>`).join('')}</div></details>`;
                 });
                 html += `</div></div>`; c.innerHTML = html;
-
                 setTimeout(() => {
                     const iKeys = Object.keys(incomeGroups); const eKeys = Object.keys(expenseGroups);
                     new Chart(document.getElementById('pieInc'), { type: 'doughnut', data: { labels: iKeys, datasets: [{ data: iKeys.map(k=>incomeGroups[k].val), backgroundColor: this.generateColors(iKeys.length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } });
@@ -516,17 +515,22 @@
                 if (this.detailState.cats === null && Store.data.categories.length > 0) this.detailState.cats = Store.data.categories.map(c => c.id);
                 const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
                 const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
-                container.innerHTML = `
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <div class="flex gap-2 mb-4"><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
-                        <div class="flex gap-4 mb-4"><label><input type="checkbox" class="detail-type-cb" value="expense" checked onchange="App.updateDetailView()"> Uscite</label><label><input type="checkbox" class="detail-type-cb" value="income" checked onchange="App.updateDetailView()"> Entrate</label></div>
-                        <div class="max-h-32 overflow-y-auto grid grid-cols-2 gap-2">${Store.data.categories.map(c=>`<label><input type="checkbox" class="detail-cat-cb" value="${c.id}" checked onchange="App.updateDetailView()"> ${c.name}</label>`).join('')}</div>
-                    </div>
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'}">Totale Periodo: € ${tot.toLocaleString()}</div>
-                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden">
-                        ${filtered.map(t=>`<div class="flex justify-between p-3 border-b dark:border-gray-700"><div><div class="font-bold dark:text-white">${Store.data.categories.find(c=>c.id===t.category)?.name}</div><div class="text-xs text-gray-400">${t.date} - ${t.description}</div></div><div class="font-bold ${t.type==='income'?'text-green-500':'text-red-500'}">€ ${t.amount}</div></div>`).join('')}
-                    </div>
-                `;
+                container.innerHTML = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6"><div class="flex gap-2 mb-4"><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div><div class="flex gap-4 mb-4"><label><input type="checkbox" class="detail-type-cb" value="expense" checked onchange="App.updateDetailView()"> Uscite</label><label><input type="checkbox" class="detail-type-cb" value="income" checked onchange="App.updateDetailView()"> Entrate</label></div><div class="max-h-32 overflow-y-auto grid grid-cols-2 gap-2">${Store.data.categories.map(c=>`<label><input type="checkbox" class="detail-cat-cb" value="${c.id}" checked onchange="App.updateDetailView()"> ${c.name}</label>`).join('')}</div></div><div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'}">Totale Periodo: € ${tot.toLocaleString()}</div><div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden">${filtered.map(t=>`<div class="flex justify-between p-3 border-b dark:border-gray-700"><div><div class="font-bold dark:text-white">${Store.data.categories.find(c=>c.id===t.category)?.name}</div><div class="text-xs text-gray-400">${t.date} - ${t.description}</div></div><div class="font-bold ${t.type==='income'?'text-green-500':'text-red-500'}">€ ${t.amount}</div></div>`).join('')}</div>`;
+            },
+            renderFunds(c) {
+                const funds = Store.data.categories.filter(x => x.type === 'transfer');
+                c.innerHTML = `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold dark:text-white">I Miei Fondi</h2><button onclick="App.openCatModal(null, 'transfer')" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-purple-700 transition">+ Nuovo</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${funds.map(f => {
+                    const saved = Store.data.transactions.filter(t => t.category === f.id && t.status === 'done').reduce((acc, t) => acc + t.amount, 0); const pct = f.target ? Math.max(0, Math.min(100, (saved / f.target) * 100)) : 0;
+                    return `<div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border border-purple-100 dark:border-purple-900/30"><div class="flex justify-between items-start mb-4"><div><h3 class="font-bold text-lg dark:text-white">${f.name}</h3><p class="text-xs text-gray-500">Obiettivo: € ${f.target.toLocaleString()}</p></div><div class="flex gap-2"><button onclick="App.openWithdrawModal('${f.id}')" class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition" title="Preleva"><i class="fas fa-money-bill-wave"></i></button><button onclick="App.openCatModal('${f.id}')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-pen"></i></button><button onclick="if(confirm('Eliminare questo fondo?')) Store.delCat('${f.id}')" class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 transition" title="Elimina"><i class="fas fa-trash"></i></button></div></div><div class="flex justify-between items-end mb-2"><span class="text-2xl font-bold text-purple-600 dark:text-purple-400">€ ${saved.toLocaleString()}</span><span class="text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded">${Math.round(pct)}%</span></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-3 rounded-full progress-fill" style="width: ${pct}%"></div></div></div>`;
+                }).join('')}</div>`;
+            },
+            renderCats(c) {
+                const types = { expense: {l:'Uscite', c:'text-red-500'}, income: {l:'Entrate', c:'text-green-500'} };
+                c.innerHTML = `<h2 class="text-2xl font-bold mb-6 dark:text-white">Gestione Categorie</h2>`;
+                Object.keys(types).forEach(t => {
+                    const cats = Store.data.categories.filter(x => x.type === t);
+                    c.innerHTML += `<div class="mb-8"><div class="flex justify-between items-center mb-4 sticky top-16 bg-gray-50 dark:bg-dark-bg z-10 py-2"><h3 class="font-bold text-gray-500 uppercase text-xs tracking-wider">${types[t].l}</h3><button onclick="App.openCatModal(null, '${t}')" class="text-primary-600 text-sm font-bold bg-primary-50 dark:bg-primary-900/20 px-3 py-1 rounded-full">+ Aggiungi</button></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">${cats.map(cat => `<div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border dark:border-dark-border flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center ${types[t].c} font-bold text-lg">${cat.name.charAt(0)}</div><div><div class="font-bold dark:text-white">${cat.name}</div><div class="text-xs text-gray-400">${cat.group ? 'Gruppo: '+cat.group : 'Budget: € '+cat.budget}</div></div></div><div class="flex gap-2"><button onclick="App.openCatModal('${cat.id}')" class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-blue-500 transition flex items-center justify-center"><i class="fas fa-pen"></i></button><button onclick="if(confirm('Eliminare?')) { Store.delCat('${cat.id}'); }" class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-red-500 transition flex items-center justify-center"><i class="fas fa-trash"></i></button></div></div>`).join('')}</div></div>`;
+                });
             },
             moveMonth(d) { this.date = new Date(this.date.getFullYear(), this.date.getMonth() + d, 1); this.render(); },
             moveDate(d) { this.analysisTab === 'monthly' ? this.date = new Date(this.date.getFullYear(), this.date.getMonth() + d, 1) : this.date.setFullYear(this.date.getFullYear() + d); this.render(); },
@@ -560,6 +564,28 @@
                 document.getElementById('forecast-total').textContent = `€ ${items.reduce((a,t)=>a+t.amount,0).toLocaleString('it-IT',{minimumFractionDigits:2})}`;
                 list.innerHTML = items.length ? items.map(t => `<div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer text-sm" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)"><div class="font-bold text-gray-400 text-xs">${new Date(t.date).getDate()}/${new Date(t.date).getMonth()+1}</div><div class="font-medium text-gray-800 dark:text-gray-200 truncate">${t.description}</div><div class="hidden sm:block text-xs text-gray-500 uppercase font-bold truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-center">${Store.data.categories.find(c=>c.id===t.category)?.name||'???'}</div><div class="font-bold ${type==='income'?'text-green-600':'text-red-600'} text-right whitespace-nowrap">€ ${t.amount.toLocaleString()}</div></div>`).join('') : '<div class="text-center text-gray-400 py-8">Nessuna previsione.</div>';
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
+            },
+            openDayModal(dateStr, transactions) {
+                const modal = document.getElementById('modal-day');
+                const content = document.getElementById('day-modal-content'); const list = document.getElementById('day-list');
+                content.dataset.currentDate = dateStr;
+                modal.classList.remove('hidden'); requestAnimationFrame(() => { content.classList.remove('translate-y-full'); content.classList.add('translate-y-0'); });
+                document.getElementById('day-modal-date').textContent = new Date(dateStr).toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
+                document.getElementById('day-modal-summary').textContent = transactions.length ? `${transactions.length} movimenti` : 'Nessuna operazione';
+                document.getElementById('btn-day-add').onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(null, dateStr), 200); };
+                list.innerHTML = transactions.length === 0 ? `<div class="text-center text-gray-400 py-8">Nessun movimento</div>` : '';
+                transactions.forEach(t => {
+                    const cat = Store.data.categories.find(c => c.id === t.category)?.name || '???';
+                    const div = document.createElement('div');
+                    div.className = `flex justify-between items-center p-3 rounded-xl border dark:border-dark-border ${t.status==='planned'?'bg-gray-50 dark:bg-gray-800 border-dashed':'bg-white dark:bg-dark-card'}`;
+                    div.onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(t), 200); };
+                    let colorClass = '';
+                    if (t.type === 'income') colorClass = t.status === 'planned' ? 'text-green-400' : 'text-green-600';
+                    else if (t.type === 'expense') colorClass = t.status === 'planned' ? 'text-red-400' : 'text-red-600';
+                    else colorClass = t.status === 'planned' ? 'text-purple-400' : 'text-purple-600';
+                    div.innerHTML = `<div class="flex items-center gap-3 flex-1"><div class="flex-1"><div class="font-bold text-sm dark:text-gray-200">${cat}</div><div class="text-xs text-gray-500">${t.description || ''}</div></div></div><div class="flex items-center gap-4"><div class="font-bold ${colorClass} whitespace-nowrap text-sm">${t.type==='income'?'+':(t.type==='transfer'&&t.amount<0?'+':'-')} € ${Math.abs(t.amount).toLocaleString()}</div><button onclick="event.stopPropagation(); App.toggleStatus('${t.id}')" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${t.status==='done'?'bg-green-500':'bg-gray-300 dark:bg-gray-600'}"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${t.status==='done'?'translate-x-6':'translate-x-1'}"/></button></div>`;
+                    list.appendChild(div);
+                });
             },
             generateColors(count) { return Array.from({length: count}, (_, i) => ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'][i % 10]); },
             showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-[-20px]'); t.classList.add('opacity-100', 'translate-y-0'); setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-[-20px]'); }, 3000); }
