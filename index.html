@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 3.2 Analytics Fix</title>
+    <title>FinPeo</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -36,14 +36,12 @@
         .progress-fill { transition: width 0.5s ease-out; }
         #auth-overlay { transition: opacity 0.5s; }
         .macro-check { transform: scale(1.3); cursor: pointer; }
-        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
         
         details > summary { list-style: none; cursor: pointer; }
         details > summary::-webkit-details-marker { display: none; }
         details[open] summary ~ * { animation: sweep .3s ease-in-out; }
         @keyframes sweep { 0% {opacity: 0; transform: translateY(-10px)} 100% {opacity: 1; transform: translateY(0)} }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text min-h-screen flex flex-col transition-colors duration-300 pb-24 md:pb-0">
@@ -66,7 +64,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.2 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.3 Storico</span>
                 </div>
             </div>
             
@@ -236,14 +234,11 @@
                 App.toggleLoader(true, "Sincronizzazione...");
                 this.unsubTrans = db.collection('users').doc(this.user.uid).collection('transactions').onSnapshot(snapshot => {
                     this.data.transactions = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => new Date(b.date) - new Date(a.date));
-                    
-                    // REFRESH DAY MODAL IF OPEN
                     const modalContent = document.getElementById('day-modal-content');
                     const modal = document.getElementById('modal-day');
                     if (modalContent.dataset.currentDate && !modal.classList.contains('hidden')) {
                         App.openDayModal(modalContent.dataset.currentDate, this.data.transactions.filter(t => t.date === modalContent.dataset.currentDate));
                     }
-                    
                     if(this.data.categories.length > 0 || snapshot.empty) App.toggleLoader(false);
                     App.render();
                 }, error => { App.toggleLoader(false); });
@@ -388,6 +383,21 @@
                 this.detailState.cats = on ? Store.data.categories.map(c=>c.id) : [];
                 this.updateDetailView();
             },
+            filterHistory(text) {
+                const c = document.getElementById('history-list-container');
+                if(!c) return;
+                // Re-render History with filter
+                const groups = {};
+                Store.data.transactions.forEach(t => {
+                    const y = t.date.substring(0, 4);
+                    if(!groups[y]) groups[y] = { net: 0, in: 0, out: 0, items: [] };
+                    if(t.type === 'income') { groups[y].net += t.amount; groups[y].in += t.amount; }
+                    else { groups[y].net -= t.amount; groups[y].out += t.amount; }
+                    groups[y].items.push(t);
+                });
+                const years = Object.keys(groups).sort().reverse();
+                App.renderHistoryList(years, groups, text);
+            },
             render() {
                 const c = document.getElementById('view-container'); c.innerHTML = '';
                 if(this.view === 'dashboard') this.renderDash(c); else if(this.view === 'funds') this.renderFunds(c); else if(this.view === 'analysis') this.renderAnalysis(c); else if(this.view === 'categories') this.renderCats(c);
@@ -446,7 +456,6 @@
                     const colorClass = dayNet >= 0 ? (hasPlanned ? 'text-green-400' : 'text-green-600') : (hasPlanned ? 'text-red-400' : 'text-red-600');
                     const cell = document.createElement('div');
                     cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
-                    // QUI VIENE CHIAMATA LA FUNZIONE OPEN DAY MODAL
                     cell.onclick = () => this.openDayModal(dateStr, dTrans);
                     cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${hasPlanned ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
                     grid.appendChild(cell);
@@ -459,15 +468,70 @@
                         <button onclick="App.analysisTab='annual'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='annual'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Annuale</button>
                         <button onclick="App.analysisTab='monthly'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='monthly'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Mensile</button>
                         <button onclick="App.analysisTab='trends'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='trends'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Trends</button>
+                        <button onclick="App.analysisTab='history'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='history'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Storico</button>
                         <button onclick="App.analysisTab='detail'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='detail'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Dettaglio</button>
                     </div>
                 `;
-                if (this.analysisTab !== 'detail' && this.analysisTab !== 'trends') {
+                if (this.analysisTab !== 'detail' && this.analysisTab !== 'trends' && this.analysisTab !== 'history') {
                     c.innerHTML += `<div class="flex justify-between items-center mb-6"><button onclick="App.moveDate(-1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-left"></i></button><h2 class="text-xl font-bold dark:text-white capitalize">${this.analysisTab==='monthly'?new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'}).format(this.date):y}</h2><button onclick="App.moveDate(1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-right"></i></button></div>`;
                 }
                 c.innerHTML += `<div id="analysis-content"></div>`;
                 const ct = document.getElementById('analysis-content');
-                if(this.analysisTab==='annual') this.renderAnnualTab(ct, y); else if(this.analysisTab==='monthly') this.renderMonthlyTab(ct, y, m); else if(this.analysisTab==='trends') this.renderTrendsTab(ct); else this.renderDetailTab(ct);
+                if(this.analysisTab==='annual') this.renderAnnualTab(ct, y); 
+                else if(this.analysisTab==='monthly') this.renderMonthlyTab(ct, y, m); 
+                else if(this.analysisTab==='trends') this.renderTrendsTab(ct); 
+                else if(this.analysisTab==='history') this.renderHistoryTab(ct); 
+                else this.renderDetailTab(ct);
+            },
+            renderHistoryTab(c) {
+                const groups = {};
+                Store.data.transactions.forEach(t => {
+                    const y = t.date.substring(0, 4);
+                    if(!groups[y]) groups[y] = { net: 0, in: 0, out: 0, items: [] };
+                    if(t.type === 'income') { groups[y].net += t.amount; groups[y].in += t.amount; }
+                    else { groups[y].net -= t.amount; groups[y].out += t.amount; }
+                    groups[y].items.push(t);
+                });
+                const years = Object.keys(groups).sort().reverse();
+                c.innerHTML = `
+                    <div class="mb-4">
+                        <input type="text" id="history-search" placeholder="Cerca transazione..." class="w-full p-3 rounded-xl border dark:bg-gray-800 dark:border-gray-700 dark:text-white shadow-sm" onkeyup="App.filterHistory(this.value)">
+                    </div>
+                    <div id="history-list-container" class="space-y-6"></div>
+                `;
+                this.renderHistoryList(years, groups);
+            },
+            renderHistoryList(years, groups, filterText = '') {
+                const container = document.getElementById('history-list-container');
+                let html = '';
+                years.forEach(y => {
+                    const filteredItems = groups[y].items.filter(t => filterText === '' || t.description.toLowerCase().includes(filterText.toLowerCase()) || (Store.data.categories.find(c=>c.id===t.category)?.name || '').toLowerCase().includes(filterText.toLowerCase()));
+                    if(filteredItems.length > 0) {
+                        const yearNet = filteredItems.reduce((acc, t) => acc + (t.type==='income'?t.amount:-t.amount), 0);
+                        html += `
+                            <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border dark:border-dark-border overflow-hidden">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 flex justify-between items-center sticky top-0">
+                                    <h3 class="font-black text-xl dark:text-white">${y}</h3>
+                                    <span class="font-bold ${yearNet>=0?'text-green-600':'text-red-600'}">Tot: ${yearNet>0?'+':''}€ ${yearNet.toLocaleString()}</span>
+                                </div>
+                                <div class="divide-y dark:divide-gray-700">
+                                    ${filteredItems.map(t => {
+                                        const cat = Store.data.categories.find(c=>c.id===t.category);
+                                        return `<div class="p-4 flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer" onclick="App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}'))">
+                                            <div class="flex-1 min-w-0 pr-4">
+                                                <div class="text-xs text-gray-400 font-bold mb-0.5">${new Date(t.date).toLocaleDateString()} - ${cat?.name||'??'}</div>
+                                                <div class="font-bold dark:text-gray-200 truncate">${t.description}</div>
+                                            </div>
+                                            <div class="font-black whitespace-nowrap ${t.type==='income'?'text-green-500':'text-red-500'}">${t.type==='income'?'+':'-'} € ${t.amount.toLocaleString()}</div>
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+                if(html === '') html = '<div class="text-center text-gray-400 py-10">Nessuna transazione trovata.</div>';
+                container.innerHTML = html;
             },
             renderMonthlyTab(c, y, m) {
                 const useMacro = this.monthlyViewMode === 'group';
@@ -764,22 +828,15 @@
                 document.getElementById('t-repeat').checked = false; document.getElementById('repeat-options').classList.add('hidden'); document.getElementById('repeat-section').classList.toggle('hidden', !!t);
                 document.getElementById('btn-delete-trans').classList.toggle('hidden', !t); document.getElementById('btn-copy-trans').classList.toggle('hidden', !t);
             },
-            
-            // QUESTA E' LA FUNZIONE NUOVA IMPLEMENTATA
             openDayModal(dateStr, transactions) {
                 const m = document.getElementById('modal-day');
                 const c = document.getElementById('day-modal-content');
-                
-                // Set dataset date for updates
                 c.dataset.currentDate = dateStr;
-
                 const dateObj = new Date(dateStr);
                 document.getElementById('day-modal-date').textContent = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-
                 const total = transactions.reduce((acc, t) => { if(t.type === 'income') return acc + t.amount; return acc - t.amount; }, 0);
                 const plannedCount = transactions.filter(t => t.status === 'planned').length;
                 document.getElementById('day-modal-summary').innerHTML = `Totale: <span class="${total >= 0 ? 'text-green-600' : 'text-red-600'} font-bold">€ ${total.toLocaleString()}</span> ${plannedCount > 0 ? `• <span class="text-yellow-600">${plannedCount} in attesa</span>` : ''}`;
-
                 const list = document.getElementById('day-list');
                 if (transactions.length === 0) {
                     list.innerHTML = `<div class="text-center text-gray-400 py-10">Nessuna transazione.</div>`;
@@ -806,19 +863,15 @@
                         </div>`;
                     }).join('');
                 }
-
-                // Handle Add Button
                 document.getElementById('btn-day-add').onclick = () => {
                     this.closeModals();
                     setTimeout(() => this.openTransModal(null, dateStr), 200);
                 };
-
                 m.classList.remove('hidden');
                 requestAnimationFrame(() => {
                     c.classList.remove('translate-y-full');
                 });
             },
-
             openCatModal(id = null, type = 'expense') {
                 const m = document.getElementById('modal-category'), c = document.getElementById('cat-modal-content');
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
