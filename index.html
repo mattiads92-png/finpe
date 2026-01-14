@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe</title>
+    <title>FinPe 2.3 Analytics</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -23,9 +23,7 @@
                         primary: { 50: '#eff6ff', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
                         dark: { bg: '#0f172a', card: '#1e293b', text: '#f8fafc', border: '#334155' }
                     },
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                    }
+                    fontFamily: { sans: ['Outfit', 'sans-serif'] }
                 }
             }
         }
@@ -38,9 +36,11 @@
         .progress-fill { transition: width 0.5s ease-out; }
         #auth-overlay { transition: opacity 0.5s; }
         .macro-check { transform: scale(1.3); cursor: pointer; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        /* Fix per pulsanti su mobile */
+        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
+        details > summary { list-style: none; cursor: pointer; }
+        details > summary::-webkit-details-marker { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text min-h-screen flex flex-col transition-colors duration-300 pb-24 md:pb-0">
@@ -63,7 +63,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.2 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.3 Analytics</span>
                 </div>
             </div>
             
@@ -73,14 +73,8 @@
             </div>
 
             <form id="auth-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label>
-                    <input type="email" id="auth-email" class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-800" placeholder="tu@email.com" required>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label>
-                    <input type="password" id="auth-pass" class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-800" placeholder="••••••••" required>
-                </div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Email</label><input type="email" id="auth-email" class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-800" placeholder="tu@email.com" required></div>
+                <div><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Password</label><input type="password" id="auth-pass" class="w-full p-3 rounded-xl border dark:border-gray-600 dark:bg-gray-800" placeholder="••••••••" required></div>
                 <button type="submit" id="btn-login" class="w-full py-3 bg-primary-600 text-white font-bold rounded-xl shadow-lg hover:bg-primary-700 transition">Accedi</button>
                 <button type="button" id="btn-register" class="w-full py-3 bg-white dark:bg-gray-700 text-primary-600 dark:text-white border border-gray-200 dark:border-gray-600 font-bold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-600 transition">Crea Account</button>
             </form>
@@ -91,135 +85,65 @@
     <header class="bg-white dark:bg-dark-card border-b dark:border-dark-border sticky top-0 z-40 shadow-sm safe-top">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3 group cursor-pointer" onclick="App.view='dashboard'; App.render();">
-                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 transform transition group-hover:scale-105 group-hover:rotate-3">
-                    F
-                </div>
-                <h1 class="font-black text-2xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
-                    Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
-                </h1>
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 transform transition group-hover:scale-105 group-hover:rotate-3">F</div>
+                <h1 class="font-black text-2xl tracking-tight hidden sm:block text-slate-800 dark:text-white">Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span></h1>
             </div>
             <div class="flex items-center gap-2">
                 <span id="user-email-display" class="text-xs text-gray-400 hidden sm:block mr-2"></span>
-                <button id="theme-toggle" class="icon-btn text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
-                    <i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:inline"></i>
-                </button>
-                <button id="btn-logout" class="icon-btn text-red-500 bg-red-50 dark:bg-red-900/20" title="Esci">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <button id="theme-toggle" class="icon-btn text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20"><i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:inline"></i></button>
+                <button id="btn-logout" class="icon-btn text-red-500 bg-red-50 dark:bg-red-900/20" title="Esci"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </div>
-        
         <nav class="flex overflow-x-auto gap-1 px-2 border-b dark:border-dark-border bg-white dark:bg-dark-card">
-            <button class="nav-btn active flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400" data-view="dashboard">
-                <i class="fas fa-home mr-1"></i> Dashboard
-            </button>
-            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="funds">
-                <i class="fas fa-piggy-bank mr-1"></i> Fondi
-            </button>
-            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="analysis">
-                <i class="fas fa-chart-pie mr-1"></i> Analisi
-            </button>
-            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="categories">
-                <i class="fas fa-tags mr-1"></i> Categorie
-            </button>
+            <button class="nav-btn active flex-shrink-0 px-4 py-3 text-sm font-medium border-b-2 border-primary-500 text-primary-600 dark:text-primary-400" data-view="dashboard"><i class="fas fa-home mr-1"></i> Dashboard</button>
+            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="funds"><i class="fas fa-piggy-bank mr-1"></i> Fondi</button>
+            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="analysis"><i class="fas fa-chart-pie mr-1"></i> Analisi</button>
+            <button class="nav-btn flex-shrink-0 px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent" data-view="categories"><i class="fas fa-tags mr-1"></i> Categorie</button>
         </nav>
     </header>
 
-    <main id="view-container" class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 gap-6">
-    </main>
+    <main id="view-container" class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 gap-6"></main>
 
-    <button id="fab-add" class="fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl z-50 hover:scale-105 active:scale-95 transition-transform">
-        <i class="fas fa-plus"></i>
-    </button>
+    <button id="fab-add" class="fixed bottom-6 right-6 w-14 h-14 bg-primary-600 text-white rounded-full shadow-lg flex items-center justify-center text-2xl z-50 hover:scale-105 active:scale-95 transition-transform"><i class="fas fa-plus"></i></button>
 
     <div id="modal-forecast" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-dark-card w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden transform transition-all scale-95 opacity-0 flex flex-col max-h-[85vh]" id="forecast-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                <h3 class="font-bold text-lg" id="forecast-modal-title">Previsioni</h3>
-                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 text-center border-b dark:border-dark-border">
-                <p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Totale Previsto (60gg)</p>
-                <p class="text-3xl font-black text-blue-600 dark:text-blue-400" id="forecast-total">€ 0,00</p>
-            </div>
-
-            <div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 p-3 bg-gray-100 dark:bg-gray-700/50 border-b dark:border-gray-700 text-[10px] uppercase font-bold text-gray-500">
-                <div>Data</div>
-                <div>Descrizione</div>
-                <div class="hidden sm:block">Categoria</div>
-                <div class="text-right">Importo</div>
-            </div>
-
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800"><h3 class="font-bold text-lg" id="forecast-modal-title">Previsioni</h3><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 text-center border-b dark:border-dark-border"><p class="text-xs text-gray-500 uppercase font-bold tracking-widest">Totale Previsto (60gg)</p><p class="text-3xl font-black text-blue-600 dark:text-blue-400" id="forecast-total">€ 0,00</p></div>
+            <div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 p-3 bg-gray-100 dark:bg-gray-700/50 border-b dark:border-gray-700 text-[10px] uppercase font-bold text-gray-500"><div>Data</div><div>Descrizione</div><div class="hidden sm:block">Categoria</div><div class="text-right">Importo</div></div>
             <div id="forecast-list" class="p-0 overflow-y-auto flex-1 bg-white dark:bg-dark-card"></div>
         </div>
     </div>
 
     <div id="modal-transaction" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-dark-card w-full max-w-md rounded-2xl shadow-xl overflow-hidden transform transition-all scale-95 opacity-0" id="trans-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                <h3 class="font-bold text-lg" id="modal-title">Nuova Transazione</h3>
-                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
-            </div>
-            
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800"><h3 class="font-bold text-lg" id="modal-title">Nuova Transazione</h3><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
             <form id="form-transaction" class="p-5 overflow-y-auto max-h-[80vh]">
                 <input type="hidden" id="t-id">
-                
                 <div class="grid grid-cols-3 gap-2 p-1 bg-gray-100 dark:bg-gray-700 rounded-lg mb-4">
                     <label class="cursor-pointer text-center"><input type="radio" name="type" value="expense" class="peer hidden" checked><span class="block py-2 text-sm font-medium rounded-md text-gray-500 peer-checked:bg-white peer-checked:text-red-500 peer-checked:shadow dark:peer-checked:bg-dark-card transition">Uscita</span></label>
                     <label class="cursor-pointer text-center"><input type="radio" name="type" value="income" class="peer hidden"><span class="block py-2 text-sm font-medium rounded-md text-gray-500 peer-checked:bg-white peer-checked:text-green-500 peer-checked:shadow dark:peer-checked:bg-dark-card transition">Entrata</span></label>
                     <label class="cursor-pointer text-center"><input type="radio" name="type" value="transfer" class="peer hidden"><span class="block py-2 text-sm font-medium rounded-md text-gray-500 peer-checked:bg-white peer-checked:text-purple-500 peer-checked:shadow dark:peer-checked:bg-dark-card transition">Fondo</span></label>
                 </div>
-
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div><label class="text-xs font-bold text-gray-500 uppercase">Importo (€)</label><input type="number" id="t-amount" step="0.01" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800 text-lg font-bold" required></div>
                     <div><label class="text-xs font-bold text-gray-500 uppercase">Data</label><input type="date" id="t-date" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" required></div>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="text-xs font-bold text-gray-500 uppercase">Categoria / Fondo</label>
-                    <select id="t-category" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" required></select>
-                </div>
-                
-                <div class="mb-4">
-                    <label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label>
-                    <input type="text" id="t-desc" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" placeholder="Es. Spesa settimanale">
-                </div>
-                
-                <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-4">
-                    <input type="checkbox" id="t-status" class="w-5 h-5 text-primary-600 rounded focus:ring-primary-500">
-                    <label for="t-status" class="text-sm font-medium select-none cursor-pointer">Segna come Definitiva (Già pagata)</label>
-                </div>
-
+                <div class="mb-4"><label class="text-xs font-bold text-gray-500 uppercase">Categoria / Fondo</label><select id="t-category" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" required></select></div>
+                <div class="mb-4"><label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label><input type="text" id="t-desc" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" placeholder="Es. Spesa settimanale"></div>
+                <div class="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg mb-4"><input type="checkbox" id="t-status" class="w-5 h-5 text-primary-600 rounded focus:ring-primary-500"><label for="t-status" class="text-sm font-medium select-none cursor-pointer">Segna come Definitiva (Già pagata)</label></div>
                 <div id="repeat-section" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/30 p-3 rounded-lg mb-4">
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" id="t-repeat" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500">
-                        <label for="t-repeat" class="text-sm font-bold text-blue-700 dark:text-blue-300 select-none cursor-pointer">Ripeti transazione</label>
-                    </div>
-                    <div id="repeat-options" class="hidden mt-3 pl-8">
-                        <label class="block text-xs text-gray-500 uppercase font-bold mb-1">Per quanti mesi futuri?</label>
-                        <div class="flex items-center gap-3">
-                            <input type="number" id="t-months" value="12" min="1" max="60" class="w-20 p-2 rounded border dark:bg-gray-700 dark:border-gray-600 text-center font-bold">
-                            <span class="text-xs text-gray-500 italic">Verranno create copie "previsionali"</span>
-                        </div>
-                    </div>
+                    <div class="flex items-center gap-3"><input type="checkbox" id="t-repeat" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"><label for="t-repeat" class="text-sm font-bold text-blue-700 dark:text-blue-300 select-none cursor-pointer">Ripeti transazione</label></div>
+                    <div id="repeat-options" class="hidden mt-3 pl-8"><label class="block text-xs text-gray-500 uppercase font-bold mb-1">Per quanti mesi futuri?</label><div class="flex items-center gap-3"><input type="number" id="t-months" value="12" min="1" max="60" class="w-20 p-2 rounded border dark:bg-gray-700 dark:border-gray-600 text-center font-bold"><span class="text-xs text-gray-500 italic">Copie previsionali</span></div></div>
                 </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" id="btn-delete-trans" class="px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition hidden" title="Elimina"><i class="fas fa-trash"></i></button>
-                    <button type="button" id="btn-copy-trans" class="px-4 py-3 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition hidden" title="Duplica / Copia"><i class="fas fa-copy"></i></button>
-                    <button type="submit" class="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl shadow-lg hover:bg-primary-700 active:scale-95 transition">Salva</button>
-                </div>
+                <div class="flex gap-3 pt-2"><button type="button" id="btn-delete-trans" class="px-4 py-3 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition hidden"><i class="fas fa-trash"></i></button><button type="button" id="btn-copy-trans" class="px-4 py-3 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition hidden"><i class="fas fa-copy"></i></button><button type="submit" class="flex-1 py-3 bg-primary-600 text-white font-bold rounded-xl shadow-lg hover:bg-primary-700 active:scale-95 transition">Salva</button></div>
             </form>
         </div>
     </div>
 
     <div id="modal-day" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
         <div class="bg-white dark:bg-dark-card w-full max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-transform transform translate-y-full sm:translate-y-0" id="day-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
-                <div><h3 class="font-bold text-xl" id="day-modal-date">Data</h3><p class="text-xs text-gray-500" id="day-modal-summary">Riepilogo</p></div>
-                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800"><div><h3 class="font-bold text-xl" id="day-modal-date">Data</h3><p class="text-xs text-gray-500" id="day-modal-summary">Riepilogo</p></div><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
             <div class="p-4 border-b dark:border-dark-border bg-gray-50 dark:bg-gray-800/50"><button id="btn-day-add" class="w-full py-3 bg-primary-600 text-white font-bold rounded-xl shadow-md hover:bg-primary-700 transition flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Aggiungi Transazione qui</button></div>
             <div id="day-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
         </div>
@@ -227,29 +151,18 @@
 
     <div id="modal-withdraw" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-dark-card w-full max-w-sm rounded-2xl shadow-xl overflow-hidden scale-95 opacity-0 transition-all" id="withdraw-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-purple-50 dark:bg-purple-900/20">
-                <h3 class="font-bold text-lg text-purple-700 dark:text-purple-300">Preleva dal Fondo</h3>
-                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-700"><i class="fas fa-times"></i></button>
-            </div>
-            <form id="form-withdraw" class="p-5 space-y-4">
-                <input type="hidden" id="w-fund-id">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Sposta soldi dal fondo al saldo disponibile.</p>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Importo (€)</label><input type="number" id="w-amount" step="0.01" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800 text-lg font-bold" required></div>
-                <div><label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label><input type="text" id="w-desc" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" placeholder="Es. Viaggio Egitto"></div>
-                <button type="submit" class="w-full py-3 bg-purple-600 text-white font-bold rounded-xl shadow-lg hover:bg-purple-700">Conferma Prelievo</button>
-            </form>
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-purple-50 dark:bg-purple-900/20"><h3 class="font-bold text-lg text-purple-700 dark:text-purple-300">Preleva dal Fondo</h3><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
+            <form id="form-withdraw" class="p-5 space-y-4"><input type="hidden" id="w-fund-id"><p class="text-sm text-gray-600 dark:text-gray-400">Sposta soldi dal fondo al saldo disponibile.</p><div><label class="text-xs font-bold text-gray-500 uppercase">Importo (€)</label><input type="number" id="w-amount" step="0.01" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800 text-lg font-bold" required></div><div><label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label><input type="text" id="w-desc" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" placeholder="Es. Viaggio Egitto"></div><button type="submit" class="w-full py-3 bg-purple-600 text-white font-bold rounded-xl shadow-lg hover:bg-purple-700">Conferma Prelievo</button></form>
         </div>
     </div>
 
     <div id="modal-category" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white dark:bg-dark-card w-full max-w-sm rounded-2xl shadow-xl overflow-hidden scale-95 opacity-0 transition-all" id="cat-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center">
-                <h3 class="font-bold text-lg" id="cat-modal-title">Gestisci</h3>
-                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
-            </div>
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center"><h3 class="font-bold text-lg" id="cat-modal-title">Gestisci</h3><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
             <form id="form-category" class="p-5 space-y-4">
                 <input type="hidden" id="c-id"><input type="hidden" id="c-type">
                 <div><label class="text-xs font-bold text-gray-500 uppercase">Nome</label><input type="text" id="c-name" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" required></div>
+                <div><label class="text-xs font-bold text-gray-500 uppercase">Gruppo (Macro)</label><input type="text" id="c-group" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800" placeholder="Es. Casa, Auto, Svago"></div>
                 <div id="field-budget"><label class="text-xs font-bold text-gray-500 uppercase">Budget Mensile (€)</label><input type="number" id="c-budget" step="0.01" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800"></div>
                 <div id="field-target" class="hidden"><label class="text-xs font-bold text-gray-500 uppercase">Obiettivo Fondo (€)</label><input type="number" id="c-target" step="0.01" class="w-full p-3 rounded-lg border dark:border-gray-600 dark:bg-gray-800"></div>
                 <button type="submit" class="w-full py-3 bg-primary-600 text-white font-bold rounded-xl shadow-lg">Salva</button>
@@ -260,7 +173,6 @@
     <div id="toast" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300 z-[60] text-sm font-medium translate-y-[-20px]"></div>
 
     <script>
-        /** FIREBASE CONFIG */
         const firebaseConfig = {
             apiKey: "AIzaSyBJo5E4GjwNw9qyS30_4mHHGpo4ve5nErE",
             authDomain: "finpe-385e6.firebaseapp.com",
@@ -288,15 +200,11 @@
         const Store = {
             user: null,
             data: { transactions: [], categories: [], settings: { theme: 'light' } },
-            unsubTrans: null,
-            unsubCats: null,
-            
+            unsubTrans: null, unsubCats: null,
             async init() {
                 if(localStorage.getItem('finpe_theme') === 'dark') document.documentElement.classList.add('dark');
                 if (!isConfigured) return;
-                
-                App.toggleLoader(true, "Avvio..."); 
-
+                App.toggleLoader(true, "Avvio...");
                 auth.onAuthStateChanged(async (user) => {
                     this.user = user;
                     if (user) {
@@ -305,839 +213,325 @@
                         this.initListeners();
                     } else {
                         document.getElementById('auth-overlay').classList.remove('hidden');
-                        this.data.transactions = [];
-                        this.data.categories = [];
-                        if(this.unsubTrans) this.unsubTrans();
-                        if(this.unsubCats) this.unsubCats();
-                        App.toggleLoader(false);
-                        App.render();
+                        this.data.transactions = []; this.data.categories = [];
+                        if(this.unsubTrans) this.unsubTrans(); if(this.unsubCats) this.unsubCats();
+                        App.toggleLoader(false); App.render();
                     }
                 });
             },
-
             initListeners() {
                 App.toggleLoader(true, "Sincronizzazione...");
-
-                this.unsubTrans = db.collection('users').doc(this.user.uid).collection('transactions')
-                    .onSnapshot(snapshot => {
-                        this.data.transactions = snapshot.docs
-                            .map(doc => ({id: doc.id, ...doc.data()}))
-                            .sort((a, b) => new Date(b.date) - new Date(a.date));
-                        
-                        // FIX: Aggiorna modale se aperta
-                        const modalContent = document.getElementById('day-modal-content');
-                        const modal = document.getElementById('modal-day');
-                        const modalDate = modalContent.dataset.currentDate;
-                        
-                        if (modalDate && !modal.classList.contains('hidden')) {
-                            const dTrans = this.data.transactions.filter(t => t.date === modalDate);
-                            App.openDayModal(modalDate, dTrans);
-                        }
-
-                        if(this.data.categories.length > 0 || snapshot.empty) App.toggleLoader(false);
-                        App.render();
-                    }, error => { App.toggleLoader(false); });
-
-                this.unsubCats = db.collection('users').doc(this.user.uid).collection('categories')
-                    .onSnapshot(async snapshot => {
-                        if(snapshot.empty && this.user) {
-                            this.addDefaultCategories();
-                        } else {
-                            this.data.categories = snapshot.docs
-                                .map(doc => ({id: doc.id, ...doc.data()}))
-                                .sort((a, b) => a.name.localeCompare(b.name));
-                            
-                            App.toggleLoader(false);
-                            App.render();
-                        }
-                    }, error => { App.toggleLoader(false); });
+                this.unsubTrans = db.collection('users').doc(this.user.uid).collection('transactions').onSnapshot(snapshot => {
+                    this.data.transactions = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    const modalContent = document.getElementById('day-modal-content');
+                    const modal = document.getElementById('modal-day');
+                    if (modalContent.dataset.currentDate && !modal.classList.contains('hidden')) {
+                        App.openDayModal(modalContent.dataset.currentDate, this.data.transactions.filter(t => t.date === modalContent.dataset.currentDate));
+                    }
+                    if(this.data.categories.length > 0 || snapshot.empty) App.toggleLoader(false);
+                    App.render();
+                }, error => { App.toggleLoader(false); });
+                this.unsubCats = db.collection('users').doc(this.user.uid).collection('categories').onSnapshot(async snapshot => {
+                    if(snapshot.empty && this.user) this.addDefaultCategories();
+                    else {
+                        this.data.categories = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => a.name.localeCompare(b.name));
+                        App.toggleLoader(false); App.render();
+                    }
+                }, error => { App.toggleLoader(false); });
             },
-
             async addDefaultCategories() {
-                const defaults = [
-                    { name: 'Alimentari', type: 'expense', budget: 400 },
-                    { name: 'Casa', type: 'expense', budget: 800 },
-                    { name: 'Stipendio', type: 'income', budget: 0 },
-                    { name: 'Fondo Viaggi', type: 'transfer', target: 5000 }
-                ];
-                defaults.forEach(c => this.addCat(c));
+                [{ name: 'Alimentari', type: 'expense', budget: 400, group:'Casa' }, { name: 'Casa', type: 'expense', budget: 800, group:'Casa' }, { name: 'Stipendio', type: 'income', budget: 0, group:'Lavoro' }, { name: 'Fondo Viaggi', type: 'transfer', target: 5000, group:'Risparmi' }].forEach(c => this.addCat(c));
             },
-            
             async addTrans(t) { if(this.user) return await db.collection('users').doc(this.user.uid).collection('transactions').add(t); },
             async updateTrans(t) { if(this.user) { const { id, ...data } = t; return await db.collection('users').doc(this.user.uid).collection('transactions').doc(id).update(data); } },
             async delTrans(id) { if(this.user) return await db.collection('users').doc(this.user.uid).collection('transactions').doc(id).delete(); },
-            
             async addCat(c) { if(this.user) return await db.collection('users').doc(this.user.uid).collection('categories').add(c); },
             async updateCat(c) { if(this.user) { const { id, ...data } = c; return await db.collection('users').doc(this.user.uid).collection('categories').doc(id).update(data); } },
             async delCat(id) { if(this.user) return await db.collection('users').doc(this.user.uid).collection('categories').doc(id).delete(); },
-            
             getMonthStats(y, m) {
-                const start = new Date(y, m, 1);
-                const end = new Date(y, m + 1, 0);
+                const start = new Date(y, m, 1), end = new Date(y, m + 1, 0);
                 let s = { income: {r:0, p:0}, expense: {r:0, p:0}, transfer: {r:0, p:0}, balance: 0 };
                 this.data.transactions.forEach(t => {
                     if(t.status === 'done' && new Date(t.date) < start) {
-                        if(t.type === 'income') s.balance += t.amount;
-                        else if(t.type === 'expense') s.balance -= t.amount;
-                        else if(t.type === 'transfer') s.balance -= t.amount; 
+                        if(t.type === 'income') s.balance += t.amount; else if(t.type === 'expense') s.balance -= t.amount; else if(t.type === 'transfer') s.balance -= t.amount; 
                     }
                 });
                 this.data.transactions.forEach(t => {
                     const d = new Date(t.date);
-                    if(d >= start && d <= end) {
-                        const k = t.status === 'done' ? 'r' : 'p';
-                        s[t.type][k] += t.amount;
-                    }
+                    if(d >= start && d <= end) { const k = t.status === 'done' ? 'r' : 'p'; s[t.type][k] += t.amount; }
                 });
                 return s;
-            },
-
-            getYearStats(year) {
-                let months = Array.from({length: 12}, () => ({ income: 0, expense: 0, balance: 0 }));
-                this.data.transactions.forEach(t => {
-                    const d = new Date(t.date);
-                    if(d.getFullYear() === year && t.status === 'done') {
-                        const m = d.getMonth();
-                        if(t.type === 'income') months[m].income += t.amount;
-                        else if(t.type === 'expense') months[m].expense += t.amount;
-                    }
-                });
-                months.forEach(m => m.balance = m.income - m.expense);
-                return months;
             }
         };
 
         const App = {
-            view: 'dashboard',
-            analysisTab: 'annual', 
-            date: new Date(),
-            charts: {},
-            hiddenTrendCats: [],
-            currentTotalExp: 0,
-            macroMergeMode: false,
-            isLoading: false,
-            
-            detailState: {
-                start: '',
-                end: '',
-                types: ['income', 'expense', 'transfer'],
-                cats: null 
-            },
-
+            view: 'dashboard', analysisTab: 'annual', date: new Date(), charts: {}, selectedTrendCat: null,
+            detailState: { start: '', end: '', types: ['income', 'expense', 'transfer'], cats: null },
             toggleLoader(show, msg = 'Caricamento...') {
-                this.isLoading = show;
-                const el = document.getElementById('global-loader');
-                const txt = document.getElementById('loader-msg');
-                if(show) {
-                    txt.textContent = msg;
-                    el.classList.remove('hidden');
-                    requestAnimationFrame(() => el.classList.remove('opacity-0'));
-                } else {
-                    el.classList.add('opacity-0');
-                    setTimeout(() => el.classList.add('hidden'), 300);
-                }
+                const el = document.getElementById('global-loader'); document.getElementById('loader-msg').textContent = msg;
+                if(show) { el.classList.remove('hidden'); requestAnimationFrame(() => el.classList.remove('opacity-0')); } 
+                else { el.classList.add('opacity-0'); setTimeout(() => el.classList.add('hidden'), 300); }
             },
-
             init() { 
                 Store.init(); 
                 const d = new Date();
                 this.detailState.start = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0,10);
                 this.detailState.end = new Date(d.getFullYear(), d.getMonth()+1, 0).toISOString().slice(0,10);
-                
-                this.listeners(); 
-                this.render(); 
+                this.listeners(); this.render(); 
             },
-
             listeners() {
                 document.getElementById('auth-form').onsubmit = async (e) => {
-                    e.preventDefault();
-                    if(!isConfigured) return;
-                    App.toggleLoader(true, "Autenticazione...");
-                    try {
-                        await auth.signInWithEmailAndPassword(document.getElementById('auth-email').value, document.getElementById('auth-pass').value);
-                        document.getElementById('auth-error').classList.add('hidden');
-                    } catch(err) {
-                        App.toggleLoader(false);
-                        document.getElementById('auth-error').textContent = "Errore: " + err.message;
-                        document.getElementById('auth-error').classList.remove('hidden');
-                    }
+                    e.preventDefault(); if(!isConfigured) return; App.toggleLoader(true, "Autenticazione...");
+                    try { await auth.signInWithEmailAndPassword(document.getElementById('auth-email').value, document.getElementById('auth-pass').value); document.getElementById('auth-error').classList.add('hidden'); } catch(err) { App.toggleLoader(false); document.getElementById('auth-error').textContent = "Errore: " + err.message; document.getElementById('auth-error').classList.remove('hidden'); }
                 };
                 document.getElementById('btn-register').onclick = async () => {
-                    if(!isConfigured) return;
-                    App.toggleLoader(true, "Creazione Account...");
-                    try {
-                        await auth.createUserWithEmailAndPassword(document.getElementById('auth-email').value, document.getElementById('auth-pass').value);
-                    } catch(err) {
-                        App.toggleLoader(false);
-                        document.getElementById('auth-error').textContent = "Errore: " + err.message;
-                        document.getElementById('auth-error').classList.remove('hidden');
-                    }
+                    if(!isConfigured) return; App.toggleLoader(true, "Creazione Account...");
+                    try { await auth.createUserWithEmailAndPassword(document.getElementById('auth-email').value, document.getElementById('auth-pass').value); } catch(err) { App.toggleLoader(false); document.getElementById('auth-error').textContent = "Errore: " + err.message; document.getElementById('auth-error').classList.remove('hidden'); }
                 };
                 document.getElementById('btn-logout').onclick = () => { if(confirm('Vuoi uscire?')) auth.signOut(); };
-
                 document.querySelectorAll('.nav-btn').forEach(b => {
                     b.onclick = () => {
-                        this.view = b.dataset.view;
-                        document.querySelectorAll('.nav-btn').forEach(btn => {
-                            btn.classList.remove('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
-                            btn.classList.add('border-transparent', 'text-gray-500');
-                        });
-                        b.classList.add('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400');
-                        b.classList.remove('border-transparent', 'text-gray-500');
-                        this.render();
+                        this.view = b.dataset.view; document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400'); btn.classList.add('border-transparent', 'text-gray-500'); }); b.classList.add('active', 'border-primary-500', 'text-primary-600', 'dark:text-primary-400'); b.classList.remove('border-transparent', 'text-gray-500'); this.render();
                     };
                 });
-                document.getElementById('theme-toggle').onclick = () => {
-                    document.documentElement.classList.toggle('dark');
-                    localStorage.setItem('finpe_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
-                };
-
+                document.getElementById('theme-toggle').onclick = () => { document.documentElement.classList.toggle('dark'); localStorage.setItem('finpe_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); };
                 document.querySelectorAll('.modal-close').forEach(b => b.onclick = () => this.closeModals());
                 document.getElementById('fab-add').onclick = () => this.openTransModal();
-
-                document.getElementById('t-repeat').onchange = (e) => {
-                    document.getElementById('repeat-options').classList.toggle('hidden', !e.target.checked);
-                };
-
+                document.getElementById('t-repeat').onchange = (e) => { document.getElementById('repeat-options').classList.toggle('hidden', !e.target.checked); };
                 document.getElementById('form-transaction').onsubmit = async (e) => {
-                    e.preventDefault();
-                    App.toggleLoader(true, "Salvataggio...");
+                    e.preventDefault(); App.toggleLoader(true, "Salvataggio...");
                     try {
-                        const rawData = {
-                            id: document.getElementById('t-id').value,
-                            type: document.querySelector('input[name="type"]:checked').value,
-                            amount: parseFloat(document.getElementById('t-amount').value),
-                            date: document.getElementById('t-date').value,
-                            category: document.getElementById('t-category').value,
-                            description: document.getElementById('t-desc').value,
-                            status: document.getElementById('t-status').checked ? 'done' : 'planned'
-                        };
-
-                        const isRepeating = document.getElementById('t-repeat').checked;
-                        const repeatMonths = isRepeating ? parseInt(document.getElementById('t-months').value) : 0;
-                        const { id, ...dataToSave } = rawData;
-
+                        const rawData = { id: document.getElementById('t-id').value, type: document.querySelector('input[name="type"]:checked').value, amount: parseFloat(document.getElementById('t-amount').value), date: document.getElementById('t-date').value, category: document.getElementById('t-category').value, description: document.getElementById('t-desc').value, status: document.getElementById('t-status').checked ? 'done' : 'planned' };
+                        const isRepeating = document.getElementById('t-repeat').checked; const repeatMonths = isRepeating ? parseInt(document.getElementById('t-months').value) : 0; const { id, ...dataToSave } = rawData;
                         if (isRepeating && !rawData.id) { 
-                            App.toggleLoader(true, `Creazione ${repeatMonths + 1} transazioni...`);
-                            const batch = db.batch();
-                            const firstRef = db.collection('users').doc(Store.user.uid).collection('transactions').doc();
-                            batch.set(firstRef, dataToSave); 
-                            let currentDate = new Date(dataToSave.date);
-                            for(let i=1; i<=repeatMonths; i++) {
-                                currentDate.setMonth(currentDate.getMonth() + 1);
-                                const nextRef = db.collection('users').doc(Store.user.uid).collection('transactions').doc();
-                                batch.set(nextRef, { ...dataToSave, date: currentDate.toISOString().slice(0, 10), status: 'planned' });
-                            }
+                            App.toggleLoader(true, `Creazione ${repeatMonths + 1} transazioni...`); const batch = db.batch(); const firstRef = db.collection('users').doc(Store.user.uid).collection('transactions').doc(); batch.set(firstRef, dataToSave); let currentDate = new Date(dataToSave.date);
+                            for(let i=1; i<=repeatMonths; i++) { currentDate.setMonth(currentDate.getMonth() + 1); const nextRef = db.collection('users').doc(Store.user.uid).collection('transactions').doc(); batch.set(nextRef, { ...dataToSave, date: currentDate.toISOString().slice(0, 10), status: 'planned' }); }
                             await batch.commit();
-                        } else {
-                            if(rawData.id) await Store.updateTrans(rawData); 
-                            else await Store.addTrans(dataToSave); 
-                        }
-                        this.closeModals();
-                        App.showToast("Salvato con successo");
-                    } catch (error) {
-                        console.error(error);
-                        alert("Errore salvataggio: " + error.message);
-                    } finally {
-                        App.toggleLoader(false);
-                    }
+                        } else { if(rawData.id) await Store.updateTrans(rawData); else await Store.addTrans(dataToSave); }
+                        this.closeModals(); App.showToast("Salvato con successo");
+                    } catch (error) { alert("Errore salvataggio: " + error.message); } finally { App.toggleLoader(false); }
                 };
-
                 document.getElementById('form-category').onsubmit = async (e) => {
-                    e.preventDefault();
-                    App.toggleLoader(true, "Salvataggio Categoria...");
+                    e.preventDefault(); App.toggleLoader(true, "Salvataggio Categoria...");
                     try {
-                        const rawData = {
-                            id: document.getElementById('c-id').value,
-                            name: document.getElementById('c-name').value,
-                            type: document.getElementById('c-type').value,
-                            budget: parseFloat(document.getElementById('c-budget').value) || 0,
-                            target: parseFloat(document.getElementById('c-target').value) || 0
-                        };
-                        const { id, ...dataToSave } = rawData;
-                        if (rawData.id) await Store.updateCat(rawData); else await Store.addCat(dataToSave);
-                        this.closeModals();
-                    } catch (error) {
-                        console.error(error);
-                        alert("Errore salvataggio: " + error.message);
-                    } finally {
-                        App.toggleLoader(false);
-                    }
+                        const rawData = { id: document.getElementById('c-id').value, name: document.getElementById('c-name').value, group: document.getElementById('c-group').value, type: document.getElementById('c-type').value, budget: parseFloat(document.getElementById('c-budget').value) || 0, target: parseFloat(document.getElementById('c-target').value) || 0 };
+                        const { id, ...dataToSave } = rawData; if (rawData.id) await Store.updateCat(rawData); else await Store.addCat(dataToSave); this.closeModals();
+                    } catch (error) { alert("Errore salvataggio: " + error.message); } finally { App.toggleLoader(false); }
                 };
-
                 document.getElementById('form-withdraw').onsubmit = async (e) => {
-                    e.preventDefault();
-                    const amount = parseFloat(document.getElementById('w-amount').value);
-                    if(amount <= 0) return;
-                    App.toggleLoader(true, "Elaborazione Prelievo...");
-                    try {
-                        await Store.addTrans({ type: 'transfer', amount: -amount, date: new Date().toISOString().slice(0,10), category: document.getElementById('w-fund-id').value, description: document.getElementById('w-desc').value || 'Prelievo', status: 'done' });
-                        this.closeModals();
-                    } finally {
-                        App.toggleLoader(false);
-                    }
+                    e.preventDefault(); const amount = parseFloat(document.getElementById('w-amount').value); if(amount <= 0) return; App.toggleLoader(true, "Elaborazione Prelievo...");
+                    try { await Store.addTrans({ type: 'transfer', amount: -amount, date: new Date().toISOString().slice(0,10), category: document.getElementById('w-fund-id').value, description: document.getElementById('w-desc').value || 'Prelievo', status: 'done' }); this.closeModals(); } finally { App.toggleLoader(false); }
                 };
-
-                document.getElementById('btn-delete-trans').onclick = async () => {
-                    if(confirm('Eliminare questa transazione?')) { 
-                        App.toggleLoader(true, "Eliminazione...");
-                        await Store.delTrans(document.getElementById('t-id').value); 
-                        App.toggleLoader(false);
-                        this.closeModals(); 
-                        this.closeModals();
-                    }
-                };
+                document.getElementById('btn-delete-trans').onclick = async () => { if(confirm('Eliminare questa transazione?')) { App.toggleLoader(true, "Eliminazione..."); await Store.delTrans(document.getElementById('t-id').value); App.toggleLoader(false); this.closeModals(); this.closeModals(); } };
                 document.querySelectorAll('input[name="type"]').forEach(r => r.onchange = () => this.popCats(r.value));
             },
-
             exportCsv() {
                 if(!Store.data.transactions.length) return alert("Nessun dato da esportare.");
-                let csv = "Data;Tipo;Categoria;Descrizione;Importo;Stato\n";
+                let csv = "Data;Tipo;Categoria;Gruppo;Descrizione;Importo;Stato\n";
                 Store.data.transactions.forEach(t => {
-                    const catName = Store.data.categories.find(c => c.id === t.category)?.name || "Eliminata";
+                    const cat = Store.data.categories.find(c => c.id === t.category);
                     const safeDesc = (t.description || "").replace(/;/g, ",");
-                    csv += `${t.date};${t.type};${catName};${safeDesc};${t.amount};${t.status}\n`;
+                    csv += `${t.date};${t.type};${cat?.name||"Eliminata"};${cat?.group||""};${safeDesc};${t.amount};${t.status}\n`;
                 });
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.setAttribute("href", url);
-                link.setAttribute("download", `FinPe_Export_${new Date().toISOString().slice(0,10)}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const link = document.createElement("a"); link.setAttribute("href", URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }))); link.setAttribute("download", `FinPe_Export_${new Date().toISOString().slice(0,10)}.csv`); document.body.appendChild(link); link.click(); document.body.removeChild(link);
             },
-
             async importJson(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                e.target.value = '';
-                const reader = new FileReader();
+                const file = e.target.files[0]; if (!file) return; e.target.value = ''; const reader = new FileReader();
                 reader.onload = async (event) => {
                     try {
-                        const rawData = JSON.parse(event.target.result);
-                        if (!Array.isArray(rawData)) throw new Error("Il file deve contenere una lista (array) di movimenti.");
-                        const wipe = confirm("Vuoi CANCELLARE TUTTI i dati esistenti prima di importare?\n\nOK = Cancella tutto e importa (Reset)\nAnnulla = Mantieni esistenti e aggiungi (Unisci)");
-                        App.toggleLoader(true, "Analisi dati in corso..."); 
-                        if (wipe) {
-                            App.toggleLoader(true, "Cancellazione DB...");
-                            const tQuery = await db.collection('users').doc(Store.user.uid).collection('transactions').get();
-                            const cQuery = await db.collection('users').doc(Store.user.uid).collection('categories').get();
-                            const promises = [];
-                            tQuery.forEach(doc => promises.push(doc.ref.delete()));
-                            cQuery.forEach(doc => promises.push(doc.ref.delete()));
-                            await Promise.all(promises);
-                            Store.data.categories = []; 
+                        const rawData = JSON.parse(event.target.result); if (!Array.isArray(rawData)) throw new Error("File non valido");
+                        if (confirm("CANCELLARE TUTTO prima di importare?")) {
+                            App.toggleLoader(true, "Reset..."); const tQ = await db.collection('users').doc(Store.user.uid).collection('transactions').get(); const cQ = await db.collection('users').doc(Store.user.uid).collection('categories').get();
+                            await Promise.all([...tQ.docs.map(d=>d.ref.delete()), ...cQ.docs.map(d=>d.ref.delete())]); Store.data.categories = [];
                         }
-                        App.toggleLoader(true, "Mappatura categorie...");
-                        const catSnapshot = await db.collection('users').doc(Store.user.uid).collection('categories').get();
-                        let catMap = {}; 
-                        catSnapshot.docs.forEach(doc => { const d = doc.data(); if(d.name) catMap[d.name.trim().toLowerCase()] = doc.id; });
-                        const uniqueCatsInFile = new Set();
-                        rawData.forEach(t => { if (t.category) uniqueCatsInFile.add(JSON.stringify({name: t.category.trim(), type: t.type})); });
-                        for (let item of uniqueCatsInFile) {
-                            const cObj = JSON.parse(item);
-                            const key = cObj.name.toLowerCase();
-                            if (!catMap[key]) {
-                                const docRef = await Store.addCat({ name: cObj.name, type: cObj.type || 'expense', budget: 0, target: 0 });
-                                catMap[key] = docRef.id;
-                            }
-                        }
-                        App.toggleLoader(true, `Importazione ${rawData.length} movimenti...`);
-                        const chunkSize = 450;
-                        for (let i = 0; i < rawData.length; i += chunkSize) {
-                            const chunk = rawData.slice(i, i + chunkSize);
-                            const batch = db.batch();
-                            chunk.forEach(t => {
-                                const catKey = t.category ? t.category.trim().toLowerCase() : null;
-                                const catId = catKey ? catMap[catKey] : null;
-                                if (catId) {
-                                    const ref = db.collection('users').doc(Store.user.uid).collection('transactions').doc();
-                                    batch.set(ref, { amount: Number(t.amount), date: t.date, description: t.description || '', status: t.status || 'done', type: t.type, category: catId });
-                                }
-                            });
-                            await batch.commit();
-                        }
+                        App.toggleLoader(true, "Importazione..."); const catSnapshot = await db.collection('users').doc(Store.user.uid).collection('categories').get(); let catMap = {}; catSnapshot.docs.forEach(doc => { const d = doc.data(); if(d.name) catMap[d.name.trim().toLowerCase()] = doc.id; });
+                        const uniqueCats = new Set(); rawData.forEach(t => { if (t.category) uniqueCats.add(JSON.stringify({name: t.category.trim(), group: t.group || '', type: t.type})); });
+                        for (let item of uniqueCats) { const cObj = JSON.parse(item); const key = cObj.name.toLowerCase(); if (!catMap[key]) { const docRef = await Store.addCat({ name: cObj.name, group: cObj.group, type: cObj.type || 'expense', budget: 0, target: 0 }); catMap[key] = docRef.id; } }
+                        const chunkSize = 450; for (let i = 0; i < rawData.length; i += chunkSize) { const batch = db.batch(); rawData.slice(i, i + chunkSize).forEach(t => { const catId = t.category ? catMap[t.category.trim().toLowerCase()] : null; if(catId) batch.set(db.collection('users').doc(Store.user.uid).collection('transactions').doc(), { amount: Number(t.amount), date: t.date, description: t.description || '', status: t.status || 'done', type: t.type, category: catId }); }); await batch.commit(); }
                         App.showToast("Importazione Completata!");
-                    } catch (err) {
-                        console.error(err);
-                        alert("Errore importazione: " + err.message);
-                    } finally {
-                        App.toggleLoader(false); 
-                    }
-                };
-                reader.readAsText(file);
+                    } catch (err) { alert("Errore: " + err.message); } finally { App.toggleLoader(false); }
+                }; reader.readAsText(file);
             },
-
-            async toggleStatus(id) {
-                const t = Store.data.transactions.find(x => x.id === id);
-                if(t) {
-                    App.toggleLoader(true, "Aggiornamento stato...");
-                    await Store.updateTrans({...t, status: t.status === 'done' ? 'planned' : 'done'});
-                    App.toggleLoader(false);
-                }
-            },
-
-            toggleTrendCat(catId) {
-                this.hiddenTrendCats = this.hiddenTrendCats.includes(catId) ? 
-                    this.hiddenTrendCats.filter(id => id !== catId) : [...this.hiddenTrendCats, catId];
-                this.updateTrendChart(new Date().getFullYear());
-            },
-
-            toggleAllTrends(checked) {
-                const cats = Store.data.categories.filter(c => c.type === 'expense');
-                if (checked) { this.hiddenTrendCats = []; } else { this.hiddenTrendCats = cats.map(c => c.id); }
-                document.querySelectorAll('.trend-checkbox').forEach(cb => cb.checked = checked);
-                this.updateTrendChart(new Date().getFullYear());
-            },
-
-            updateMacroSum() {
-                let total = 0;
-                document.querySelectorAll('.macro-check:checked').forEach(cb => { total += parseFloat(cb.dataset.amount); });
-                const dispTotal = document.getElementById('macro-total-display');
-                const dispAvg = document.getElementById('macro-avg-display');
-                const dispPct = document.getElementById('macro-pct-display');
-                if(dispTotal) dispTotal.textContent = `€ ${total.toLocaleString()}`;
-                const bar = document.getElementById('macro-sum-bar');
-                if(total > 0) bar.classList.remove('hidden'); else bar.classList.add('hidden');
-                if (this.analysisTab === 'annual') {
-                    if(dispAvg) dispAvg.textContent = `Media: € ${(total / 12).toFixed(0)}`;
-                    if(dispPct) dispPct.textContent = `Incidenza: ${this.currentTotalExp > 0 ? (total / this.currentTotalExp * 100).toFixed(1) : 0}%`;
-                } else if (this.analysisTab === 'monthly') {
-                    if(dispAvg) dispAvg.textContent = ''; 
-                    if(dispPct) dispPct.textContent = `Incidenza: ${this.currentTotalExp > 0 ? (total / this.currentTotalExp * 100).toFixed(1) : 0}%`;
-                }
-            },
-
+            async toggleStatus(id) { const t = Store.data.transactions.find(x => x.id === id); if(t) { await Store.updateTrans({...t, status: t.status === 'done' ? 'planned' : 'done'}); } },
             updateDetailView() {
-                this.detailState.start = document.getElementById('detail-start').value;
-                this.detailState.end = document.getElementById('detail-end').value;
-                const typeCbs = document.querySelectorAll('.detail-type-cb:checked');
-                this.detailState.types = Array.from(typeCbs).map(cb => cb.value);
-                const catCbs = document.querySelectorAll('.detail-cat-cb:checked');
-                this.detailState.cats = Array.from(catCbs).map(cb => cb.value);
+                this.detailState.start = document.getElementById('detail-start').value; this.detailState.end = document.getElementById('detail-end').value;
+                this.detailState.types = Array.from(document.querySelectorAll('.detail-type-cb:checked')).map(cb => cb.value);
+                this.detailState.cats = Array.from(document.querySelectorAll('.detail-cat-cb:checked')).map(cb => cb.value);
                 this.renderDetailTab(document.getElementById('analysis-content'));
             },
-
-            toggleDetailCats(checked) {
-                document.querySelectorAll('.detail-cat-cb').forEach(cb => cb.checked = checked);
-                this.updateDetailView();
-            },
-
             render() {
-                const c = document.getElementById('view-container');
-                c.innerHTML = '';
-                if(this.view === 'dashboard') this.renderDash(c);
-                else if(this.view === 'funds') this.renderFunds(c);
-                else if(this.view === 'analysis') this.renderAnalysis(c);
-                else if(this.view === 'categories') this.renderCats(c);
+                const c = document.getElementById('view-container'); c.innerHTML = '';
+                if(this.view === 'dashboard') this.renderDash(c); else if(this.view === 'funds') this.renderFunds(c); else if(this.view === 'analysis') this.renderAnalysis(c); else if(this.view === 'categories') this.renderCats(c);
             },
-
             renderAnalysis(c) {
                 const y = this.date.getFullYear(), m = this.date.getMonth();
                 c.innerHTML = `
                     <div class="flex flex-wrap gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-6">
-                        <button onclick="App.analysisTab='annual'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab === 'annual' ? 'bg-white dark:bg-dark-card shadow text-primary-600' : 'text-gray-500'}">Annuale</button>
-                        <button onclick="App.analysisTab='monthly'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab === 'monthly' ? 'bg-white dark:bg-dark-card shadow text-primary-600' : 'text-gray-500'}">Mensile</button>
-                        <button onclick="App.analysisTab='trends'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab === 'trends' ? 'bg-white dark:bg-dark-card shadow text-primary-600' : 'text-gray-500'}">Trends</button>
-                        <button onclick="App.analysisTab='detail'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab === 'detail' ? 'bg-white dark:bg-dark-card shadow text-primary-600' : 'text-gray-500'}">Dettaglio Avanzato</button>
+                        <button onclick="App.analysisTab='annual'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='annual'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Annuale</button>
+                        <button onclick="App.analysisTab='monthly'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='monthly'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Mensile</button>
+                        <button onclick="App.analysisTab='trends'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='trends'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Trends</button>
+                        <button onclick="App.analysisTab='detail'; App.render()" class="flex-1 py-2 text-xs sm:text-sm font-medium rounded-lg transition ${this.analysisTab==='detail'?'bg-white dark:bg-dark-card shadow text-primary-600':'text-gray-500'}">Dettaglio</button>
                     </div>
                 `;
-                
-                if (this.analysisTab !== 'detail') {
-                    c.innerHTML += `
-                    <div class="flex justify-between items-center mb-6">
-                        <button onclick="App.moveDate(-1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-left"></i></button>
-                        <h2 class="text-xl font-bold dark:text-white capitalize">${this.analysisTab === 'monthly' ? new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'}).format(this.date) : y}</h2>
-                        <button onclick="App.moveDate(1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-right"></i></button>
-                    </div>`;
+                if (this.analysisTab !== 'detail' && this.analysisTab !== 'trends') {
+                    c.innerHTML += `<div class="flex justify-between items-center mb-6"><button onclick="App.moveDate(-1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-left"></i></button><h2 class="text-xl font-bold dark:text-white capitalize">${this.analysisTab==='monthly'?new Intl.DateTimeFormat('it-IT', {month:'long', year:'numeric'}).format(this.date):y}</h2><button onclick="App.moveDate(1)" class="w-10 h-10 rounded-full bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-gray-600 dark:text-gray-300"><i class="fas fa-chevron-right"></i></button></div>`;
                 }
-
                 c.innerHTML += `<div id="analysis-content"></div>`;
-                const content = document.getElementById('analysis-content');
-                if (this.analysisTab === 'annual') this.renderAnnualTab(content, y);
-                else if (this.analysisTab === 'monthly') this.renderMonthlyTab(content, y, m);
-                else if (this.analysisTab === 'trends') this.renderTrendsTab(content, y);
-                else if (this.analysisTab === 'detail') this.renderDetailTab(content);
+                const ct = document.getElementById('analysis-content');
+                if(this.analysisTab==='annual') this.renderAnnualTab(ct, y); else if(this.analysisTab==='monthly') this.renderMonthlyTab(ct, y, m); else if(this.analysisTab==='trends') this.renderTrendsTab(ct); else this.renderDetailTab(ct);
             },
-
-            renderDetailTab(container) {
-                if (this.detailState.cats === null && Store.data.categories.length > 0) {
-                    this.detailState.cats = Store.data.categories.map(c => c.id);
-                }
-                if (this.detailState.cats === null) this.detailState.cats = [];
-
-                const filtered = Store.data.transactions.filter(t => {
-                    if (t.status !== 'done') return false; 
-                    if (t.date < this.detailState.start || t.date > this.detailState.end) return false;
-                    if (!this.detailState.types.includes(t.type)) return false;
-                    if (!this.detailState.cats.includes(t.category)) return false;
-                    return true;
+            renderMonthlyTab(c, y, m) {
+                const cats = Store.data.categories.filter(x => x.type === 'expense');
+                let totalExp = 0; cats.forEach(ca => { totalExp += Store.data.transactions.filter(t => t.category === ca.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a, t) => a + t.amount, 0); });
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex justify-center items-center"><div class="w-48 h-48 relative"><canvas id="chartPieMonthly"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border overflow-y-auto max-h-80"><h3 class="font-bold mb-3 dark:text-white text-sm">Dettaglio Spese</h3>`;
+                html += cats.map(ca => {
+                    const sp = Store.data.transactions.filter(t => t.category === ca.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a, t) => a + t.amount, 0);
+                    if(sp === 0) return '';
+                    const pct = totalExp > 0 ? (sp / totalExp * 100).toFixed(1) : 0;
+                    return `<div class="flex justify-between items-center py-2 border-b dark:border-gray-700 last:border-0"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-blue-500"></div><span class="text-sm dark:text-gray-200">${ca.name}</span></div><div class="text-right"><div class="font-bold text-sm dark:text-white">€${sp.toLocaleString()}</div><div class="text-[10px] text-gray-400">${pct}%</div></div></div>`;
+                }).join('') || '<div class="text-center text-gray-400 py-4">Nessuna spesa</div>';
+                html += `</div></div>`; c.innerHTML = html;
+                setTimeout(() => { new Chart(document.getElementById('chartPieMonthly'), { type: 'doughnut', data: { labels: cats.map(c=>c.name), datasets: [{ data: cats.map(ca => Store.data.transactions.filter(t => t.category === ca.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a,t) => a+t.amount, 0)), backgroundColor: this.generateColors(cats.length), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }, 0);
+            },
+            renderTrendsTab(c) {
+                if(!this.selectedTrendCat && Store.data.categories.length) this.selectedTrendCat = Store.data.categories[0].id;
+                const cat = Store.data.categories.find(x => x.id === this.selectedTrendCat);
+                
+                // Prepare Data
+                const history = {}; const monthlyAvg = {}; const topMonths = {};
+                const trans = Store.data.transactions.filter(t => t.category === this.selectedTrendCat && t.status === 'done').sort((a,b) => new Date(a.date) - new Date(b.date));
+                
+                trans.forEach(t => {
+                    const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear();
+                    if(!history[k]) history[k] = 0; history[k] += t.amount;
+                    if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() };
+                    monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
+                    if(!topMonths[y]) topMonths[y] = [];
                 });
 
-                let totInc = filtered.filter(t=>t.type==='income').reduce((a,b)=>a+b.amount,0);
-                let totExp = filtered.filter(t=>t.type==='expense').reduce((a,b)=>a+b.amount,0); 
-                let totTrans = filtered.filter(t=>t.type==='transfer').reduce((a,b)=>a+b.amount,0);
+                // Build Top 3
+                Object.keys(history).forEach(ym => {
+                    const [y, m] = ym.split('-'); const val = history[ym];
+                    if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val});
+                });
+                Object.keys(topMonths).forEach(y => { topMonths[y].sort((a,b) => b.v - a.v); topMonths[y] = topMonths[y].slice(0,3); });
 
                 let html = `
-                <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                    <h3 class="font-bold mb-4 dark:text-white text-sm">Filtri Avanzati</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div class="flex gap-2">
-                            <div class="flex-1"><label class="text-[10px] uppercase text-gray-500 font-bold">Dal</label><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
-                            <div class="flex-1"><label class="text-[10px] uppercase text-gray-500 font-bold">Al</label><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
-                        </div>
-                        <div class="flex items-end gap-3 pb-2">
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="detail-type-cb w-4 h-4 text-green-500 rounded" value="income" ${this.detailState.types.includes('income')?'checked':''} onchange="App.updateDetailView()"><span class="text-sm dark:text-gray-300">Entrate</span></label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="detail-type-cb w-4 h-4 text-red-500 rounded" value="expense" ${this.detailState.types.includes('expense')?'checked':''} onchange="App.updateDetailView()"><span class="text-sm dark:text-gray-300">Uscite</span></label>
-                            <label class="flex items-center gap-1 cursor-pointer"><input type="checkbox" class="detail-type-cb w-4 h-4 text-purple-500 rounded" value="transfer" ${this.detailState.types.includes('transfer')?'checked':''} onchange="App.updateDetailView()"><span class="text-sm dark:text-gray-300">Fondi</span></label>
-                        </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Seleziona Categoria</label>
+                        <select id="trend-cat-sel" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.selectedTrendCat=this.value; App.render()">
+                            ${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name} (${cc.group||'Nessun gruppo'})</option>`).join('')}
+                        </select>
                     </div>
-                    <div class="border-t dark:border-gray-700 pt-3">
-                        <div class="flex items-center gap-2 mb-2">
-                            <input type="checkbox" id="detail-cat-all" class="w-4 h-4 text-blue-600 rounded" ${this.detailState.cats.length === Store.data.categories.length ? 'checked' : ''} onchange="App.toggleDetailCats(this.checked)">
-                            <label for="detail-cat-all" class="text-xs font-bold uppercase text-gray-500 cursor-pointer">Tutte le Categorie</label>
-                        </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-32 overflow-y-auto">
-                            ${Store.data.categories.map(c => `
-                                <label class="flex items-center gap-2 cursor-pointer">
-                                    <input type="checkbox" class="detail-cat-cb w-3 h-3 text-blue-600 rounded border-gray-300" value="${c.id}" ${this.detailState.cats.includes(c.id)?'checked':''} onchange="App.updateDetailView()">
-                                    <span class="text-xs truncate dark:text-gray-300">${c.name}</span>
-                                </label>
-                            `).join('')}
-                        </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
+                        <h3 class="font-bold mb-4 dark:text-white text-sm">Andamento Storico</h3>
+                        <div class="h-64 relative"><canvas id="chartHistory"></canvas></div>
                     </div>
-                </div>
-
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-green-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Entrate Sel.</div><div class="text-sm font-bold text-green-600">€${totInc.toLocaleString()}</div></div>
-                    <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-red-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Uscite Sel.</div><div class="text-sm font-bold text-red-600">€${totExp.toLocaleString()}</div></div>
-                    <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-purple-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Fondi Sel.</div><div class="text-sm font-bold text-purple-600">€${Math.abs(totTrans).toLocaleString()}</div></div>
-                </div>
-
-                <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm border dark:border-dark-border overflow-hidden">
-                    <div class="p-3 bg-gray-50 dark:bg-gray-800 border-b dark:border-gray-700 font-bold text-xs uppercase text-gray-500">Risultati: ${filtered.length} transazioni</div>
-                    <div class="max-h-96 overflow-y-auto">
-                        ${filtered.map(t => {
-                            const cat = Store.data.categories.find(c => c.id === t.category)?.name || '???';
-                            let col = t.type === 'income' ? 'text-green-600' : (t.type === 'expense' ? 'text-red-600' : 'text-purple-600');
-                            let sign = t.type === 'income' ? '+' : (t.type === 'transfer' && t.amount < 0 ? '+' : '-');
-                            return `
-                            <div class="flex justify-between items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer" onclick="App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}'))">
-                                <div>
-                                    <div class="font-bold text-sm dark:text-gray-200">${cat}</div>
-                                    <div class="text-xs text-gray-400">${new Date(t.date).toLocaleDateString()} - ${t.description}</div>
-                                </div>
-                                <div class="font-bold ${col} text-sm whitespace-nowrap">${sign} € ${Math.abs(t.amount).toLocaleString()}</div>
-                            </div>`;
-                        }).join('') || '<div class="p-8 text-center text-gray-400 text-sm">Nessuna transazione trovata con questi filtri.</div>'}
-                    </div>
-                </div>
-                `;
-                container.innerHTML = html;
-            },
-
-            renderAnnualTab(container, y) {
-                const stats = Store.getYearStats(y);
-                const totInc = stats.reduce((a,b) => a+b.income, 0);
-                const totExp = stats.reduce((a,b) => a+b.expense, 0);
-                const totNet = totInc - totExp;
-                this.currentTotalExp = totExp;
-                const cats = Store.data.categories.filter(c => c.type === 'expense');
-                const catStats = cats.map(c => {
-                    const total = Store.data.transactions.filter(t => t.category === c.id && t.type === 'expense' && t.status === 'done' && new Date(t.date).getFullYear() === y).reduce((a, t) => a + t.amount, 0);
-                    return { name: c.name, avg: total / 12, total: total };
-                }).sort((a, b) => b.total - a.total);
-
-                let html = `
-                    <div id="macro-sum-bar" class="hidden sticky top-0 z-20 bg-blue-600 text-white p-4 rounded-xl shadow-lg mb-6 flex flex-col justify-between items-start animate-pulse">
-                        <span class="font-bold uppercase text-xs tracking-wider opacity-75">Selezione Macro</span>
-                        <div class="flex justify-between w-full items-end">
-                            <span class="font-extrabold text-2xl" id="macro-total-display">€ 0</span>
-                            <div class="text-right text-xs">
-                                <div id="macro-avg-display"></div>
-                                <div id="macro-pct-display"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
+                            <h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile per Anno</h3>
+                            <div class="space-y-2">
+                                ${Object.keys(monthlyAvg).sort().reverse().map(y => {
+                                    const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1);
+                                    return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
+                            <h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3>
+                            <div class="space-y-4">
+                                ${Object.keys(topMonths).sort().reverse().map(y => {
+                                    return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`;
+                                }).join('')}
                             </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-3 gap-3 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-green-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Entrate</div><div class="text-sm font-bold text-green-600">€${(totInc/1000).toFixed(1)}k</div></div>
-                        <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-red-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Uscite</div><div class="text-sm font-bold text-red-600">€${(totExp/1000).toFixed(1)}k</div></div>
-                        <div class="bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border-l-4 border-blue-500"><div class="text-[10px] uppercase text-gray-400 font-bold">Netto</div><div class="text-sm font-bold text-blue-600">€${(totNet/1000).toFixed(1)}k</div></div>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm">Flusso Mensile</h3><div class="h-60 relative"><canvas id="chartFlow"></canvas></div></div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm">Ripartizione Spese</h3><div class="h-60 relative"><canvas id="chartPieAnnual"></canvas></div></div>
-                    </div>
-                    <div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500">Dettaglio e Macro-Analisi</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 `;
-                html += catStats.filter(x => x.total > 0).map(x => {
-                    const pct = totExp > 0 ? (x.total / totExp * 100).toFixed(1) : 0;
-                    return `<div class="flex items-center gap-3 py-2 border-b dark:border-gray-700 last:border-0"><input type="checkbox" class="macro-check w-5 h-5 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600" data-amount="${x.total}" onchange="App.updateMacroSum()"><div class="flex-1 flex justify-between items-center"><div><span class="text-sm dark:text-gray-300 font-medium">${x.name}</span><span class="text-[10px] text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md ml-2">${pct}%</span></div><div class="text-right"><span class="text-sm font-bold dark:text-white block">€${x.total.toLocaleString()}</span><span class="text-[10px] text-gray-400 block">Media: €${x.avg.toFixed(0)}</span></div></div></div>`;
-                }).join('') || '<div class="text-gray-400 text-sm">Nessun dato disponibile</div>';
-                html += `</div></div>`;
-                container.innerHTML = html;
+                c.innerHTML = html;
                 setTimeout(() => {
-                    new Chart(document.getElementById('chartFlow'), {
-                        type: 'line',
-                        data: { labels: ['G','F','M','A','M','G','L','A','S','O','N','D'], datasets: [{ label: 'Entrate', data: stats.map(s=>s.income), borderColor: '#10b981', tension: 0.4 }, { label: 'Uscite', data: stats.map(s=>s.expense), borderColor: '#ef4444', tension: 0.4 }, { label: 'Netto', data: stats.map(s=>s.income - s.expense), borderColor: '#3b82f6', tension: 0.4, borderDash: [5,5] }] },
-                        options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } }, y: { grid: { color: '#33415520' } } } }
-                    });
-                    new Chart(document.getElementById('chartPieAnnual'), { type: 'doughnut', data: { labels: cats.map(c => c.name), datasets: [{ data: cats.map(c => Store.data.transactions.filter(t => t.category === c.id && t.type === 'expense' && new Date(t.date).getFullYear() === y).reduce((a,t) => a+t.amount, 0)), backgroundColor: this.generateColors(cats.length), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { boxWidth: 10 } } } } });
+                    const labels = Object.keys(history).sort(); const data = labels.map(k => history[k]);
+                    new Chart(document.getElementById('chartHistory'), { type: 'line', data: { labels, datasets: [{ label: 'Spesa', data, borderColor: '#3b82f6', tension: 0.2, fill: true, backgroundColor: '#3b82f610' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } }, plugins: { legend: { display: false } } } });
                 }, 0);
             },
+            renderAnnualTab(c, y) {
+                // Group Logic
+                const incomeGroups = {}; const expenseGroups = {};
+                Store.data.transactions.filter(t => t.status==='done' && new Date(t.date).getFullYear()===y).forEach(t => {
+                    const cat = Store.data.categories.find(c => c.id === t.category);
+                    const groupName = (cat ? (cat.group || cat.name) : 'Altro');
+                    const target = t.type === 'income' ? incomeGroups : (t.type === 'expense' ? expenseGroups : null);
+                    if(target) {
+                        if(!target[groupName]) target[groupName] = { val: 0, subs: {} };
+                        target[groupName].val += t.amount;
+                        const subName = cat ? cat.name : 'Sconosciuto';
+                        if(!target[groupName].subs[subName]) target[groupName].subs[subName] = 0;
+                        target[groupName].subs[subName] += t.amount;
+                    }
+                });
 
-            renderMonthlyTab(container, y, m) {
-                const cats = Store.data.categories.filter(x => x.type === 'expense');
-                let totalMonthlyExp = 0;
-                cats.forEach(c => { totalMonthlyExp += Store.data.transactions.filter(t => t.category === c.id && (t.status === 'done' || t.status === 'planned') && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a, t) => a + t.amount, 0); });
-                this.currentTotalExp = totalMonthlyExp;
                 let html = `
-                    <div id="macro-sum-bar" class="hidden sticky top-0 z-20 bg-blue-600 text-white p-4 rounded-xl shadow-lg mb-6 flex flex-col justify-between items-start animate-pulse">
-                        <span class="font-bold uppercase text-xs tracking-wider opacity-75">Totale Selezione</span>
-                        <div class="flex justify-between w-full items-end"><span class="font-extrabold text-2xl" id="macro-total-display">€ 0</span><div class="text-right text-xs" id="macro-pct-display"></div></div>
-                    </div>
-                `;
-                html += `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6 flex justify-center"><div class="w-full max-w-xs h-64 relative"><canvas id="chartPieMonthly"></canvas></div></div><div class="bg-white dark:bg-dark-card p-6 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500">Dettaglio e Macro-Analisi</h3><p class="text-xs text-gray-400 mb-4">Spunta le caselle per sommare più categorie.</p>${cats.map(c => {
-                    const spent = Store.data.transactions.filter(t => t.category === c.id && (t.status === 'done' || t.status === 'planned') && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a, t) => a + t.amount, 0);
-                    if(spent === 0) return '';
-                    const pctBudget = c.budget > 0 ? (spent / c.budget * 100) : 0;
-                    const pctTotal = totalMonthlyExp > 0 ? (spent / totalMonthlyExp * 100).toFixed(1) : 0;
-                    return `<div class="mb-4 flex gap-3 items-center"><input type="checkbox" class="macro-check w-5 h-5 text-blue-600 rounded focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600" data-amount="${spent}" onchange="App.updateMacroSum()"><div class="flex-1"><div class="flex justify-between text-sm mb-1"><span class="font-bold dark:text-white flex items-center gap-2">${c.name} <span class="text-[9px] font-normal text-gray-500 border border-gray-200 dark:border-gray-600 px-1 rounded">${pctTotal}%</span></span><span class="${pctBudget>100?'text-red-500 font-bold':'text-gray-500'}">€${spent.toLocaleString()} / €${c.budget.toLocaleString()}</span></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden"><div class="${pctBudget > 100 ? 'bg-red-500' : (pctBudget > 80 ? 'bg-yellow-500' : 'bg-green-500')} h-2.5 rounded-full" style="width: ${Math.min(pctBudget, 100)}%"></div></div></div></div>`;
-                }).join('') || '<div class="text-center text-gray-400">Nessuna spesa</div>'}</div>`;
-                container.innerHTML = html;
-                setTimeout(() => { new Chart(document.getElementById('chartPieMonthly'), { type: 'doughnut', data: { labels: cats.map(c => c.name), datasets: [{ data: cats.map(c => Store.data.transactions.filter(t => t.category === c.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a,t) => a+t.amount, 0)), backgroundColor: this.generateColors(cats.length), borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } } }); }, 0);
-            },
-
-            renderTrendsTab(container, y) {
-                const cats = Store.data.categories.filter(c => c.type === 'expense');
-                const allSelected = this.hiddenTrendCats.length === 0;
-                let html = `
-                <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3">
-                            <input type="checkbox" id="trend-select-all" class="w-5 h-5 text-blue-600 rounded border-gray-300" ${allSelected ? 'checked' : ''} onchange="App.toggleAllTrends(this.checked)">
-                            <h3 class="font-bold dark:text-white text-sm">Seleziona Tutto</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
+                            <h3 class="font-bold mb-4 dark:text-white text-sm text-center">Entrate ${y} (per Macro-Gruppo)</h3>
+                            <div class="h-60 relative"><canvas id="pieInc"></canvas></div>
                         </div>
-                        <div class="flex items-center">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" class="sr-only peer" id="trend-merge-toggle" ${this.macroMergeMode ? 'checked' : ''} onchange="App.macroMergeMode = this.checked; App.updateTrendChart(${y})">
-                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                <span class="ms-3 text-xs font-medium text-gray-900 dark:text-gray-300">Unisci in Macro Trend</span>
-                            </label>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
+                            <h3 class="font-bold mb-4 dark:text-white text-sm text-center">Uscite ${y} (per Macro-Gruppo)</h3>
+                            <div class="h-60 relative"><canvas id="pieExp"></canvas></div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-1">
+                    <div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border">
+                        <h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500">Dettaglio Macro-Gruppi (Uscite)</h3>
+                        <div class="space-y-2">
                 `;
-                html += cats.map((c, i) => `
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" class="trend-checkbox w-4 h-4 text-blue-600 rounded dark:bg-gray-700 border-gray-300" 
-                            ${!this.hiddenTrendCats.includes(c.id) ? 'checked' : ''} 
-                            onchange="App.toggleTrendCat('${c.id}')">
-                        <span class="text-xs truncate ${this.hiddenTrendCats.includes(c.id) ? 'text-gray-400' : 'text-gray-800 dark:text-gray-200'}">${c.name}</span>
-                    </div>
-                `).join('');
-                html += `</div><div class="h-80 relative mt-6"><canvas id="chartTrends"></canvas></div></div>`;
-                container.innerHTML = html;
-                setTimeout(() => { this.updateTrendChart(y); }, 0);
-            },
-
-            updateTrendChart(y) {
-                const cats = Store.data.categories.filter(c => c.type === 'expense');
-                const visibleCats = cats.filter(c => !this.hiddenTrendCats.includes(c.id));
-                let datasets = [];
-                if (this.macroMergeMode && visibleCats.length > 0) {
-                    const data = Array.from({length: 12}, (_, m) => {
-                        return visibleCats.reduce((acc, c) => {
-                            return acc + Store.data.transactions.filter(t => t.category === c.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a,t) => a+t.amount, 0);
-                        }, 0);
-                    });
-                    datasets.push({ label: 'Macro Trend (Unito)', data: data, borderColor: '#2563eb', backgroundColor: '#2563eb20', tension: 0.4, fill: true });
-                } else {
-                    datasets = visibleCats.map((c) => {
-                        const data = Array.from({length: 12}, (_, m) => Store.data.transactions.filter(t => t.category === c.id && t.status === 'done' && new Date(t.date) >= new Date(y, m, 1) && new Date(t.date) <= new Date(y, m+1, 0)).reduce((a,t) => a+t.amount, 0));
-                        return { label: c.name, data: data, borderColor: this.generateColors(cats.length)[cats.findIndex(cat=>cat.id===c.id)], tension: 0.4, fill: false };
-                    });
-                }
-                const canvas = document.getElementById('chartTrends');
-                if (canvas) {
-                    if (this.charts.trends) this.charts.trends.destroy();
-                    this.charts.trends = new Chart(canvas, { type: 'line', data: { labels: ['G','F','M','A','M','G','L','A','S','O','N','D'], datasets: datasets }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: !this.macroMergeMode } }, scales: { y: { grid: { color: '#33415520' } } } } });
-                }
-            },
-
-            renderDash(c) {
-                const y = this.date.getFullYear(), m = this.date.getMonth();
-                const s = Store.getMonthStats(y, m);
-                const proj = s.balance + s.income.r - s.expense.r - s.transfer.r;
-                const dayTrans = Store.data.transactions.filter(t => t.date.startsWith(`${y}-${String(m+1).padStart(2,'0')}`));
                 
-                c.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <div class="flex items-center gap-3 bg-white dark:bg-dark-card rounded-full px-4 py-2 shadow-sm border border-gray-100 dark:border-gray-700">
-                            <button onclick="App.moveMonth(-1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-left"></i></button>
-                            <span class="text-sm font-bold capitalize text-slate-700 dark:text-gray-200 min-w-[100px] text-center">${new Intl.DateTimeFormat('it-IT', {month:'long'}).format(this.date)} ${y}</span>
-                            <button onclick="App.moveMonth(1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        
-                        <div class="flex items-center gap-2">
-                            <button onclick="App.exportCsv()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-green-600 hover:bg-gray-50 transition" title="Esporta CSV"><i class="fas fa-file-csv"></i></button>
-                            <input type="file" id="json-input" accept=".json" class="hidden" onchange="App.importJson(event)">
-                            <button onclick="document.getElementById('json-input').click()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-blue-600 hover:bg-gray-50 transition" title="Importa JSON"><i class="fas fa-file-import"></i></button>
-                        </div>
-                    </div>
-
-                    <div class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900 dark:from-slate-900 dark:to-slate-800 text-white p-6 rounded-3xl shadow-xl mb-8">
-                        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl pointer-events-none"></div>
-                        <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
-                        
-                        <div class="relative z-10 text-center">
-                            <span class="text-blue-200 text-xs font-bold uppercase tracking-widest block mb-2">Saldo Attuale</span>
-                            <div class="text-3xl sm:text-5xl font-black tracking-tight break-words">€ ${proj.toLocaleString('it-IT', {minimumFractionDigits:2})}</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-green-500 shadow-sm relative overflow-hidden group hover:shadow-md transition">
-                            <div class="absolute right-[-10px] top-[-10px] text-green-500 opacity-10 text-6xl group-hover:scale-110 transition-transform"><i class="fas fa-arrow-down"></i></div>
-                            <div class="text-xs font-bold text-gray-400 uppercase">Entrate</div>
-                            <div class="text-xl font-bold text-green-600 mt-1">€ ${s.income.r.toLocaleString()}</div>
-                            <button onclick="App.openForecastModal('income')" class="mt-2 w-full text-center text-xs text-green-700 dark:text-green-300 font-bold bg-green-50 dark:bg-green-900/30 py-1.5 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/50 transition cursor-pointer">
-                                Previste: + € ${s.income.p.toLocaleString()}
-                            </button>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl border-l-4 border-red-500 shadow-sm relative overflow-hidden group hover:shadow-md transition">
-                            <div class="absolute right-[-10px] top-[-10px] text-red-500 opacity-10 text-6xl group-hover:scale-110 transition-transform"><i class="fas fa-arrow-up"></i></div>
-                            <div class="text-xs font-bold text-gray-400 uppercase">Uscite</div>
-                            <div class="text-xl font-bold text-red-600 mt-1">€ ${s.expense.r.toLocaleString()}</div>
-                            <button onclick="App.openForecastModal('expense')" class="mt-2 w-full text-center text-xs text-red-700 dark:text-red-300 font-bold bg-red-50 dark:bg-red-900/30 py-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/50 transition cursor-pointer">
-                                Previste: + € ${s.expense.p.toLocaleString()}
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-7 gap-1 mb-2">${['L','M','M','G','V','S','D'].map(d=>`<div class="text-center text-xs font-bold text-gray-400">${d}</div>`).join('')}</div>
-                    <div class="grid grid-cols-7 gap-1" id="cal-grid"></div>
-                `;
-                const grid = document.getElementById('cal-grid');
-                const firstDay = new Date(y, m, 1).getDay() || 7;
-                for(let i=1; i<firstDay; i++) grid.innerHTML += `<div></div>`;
-                for(let i=1; i<=new Date(y, m + 1, 0).getDate(); i++) {
-                    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-                    const dTrans = dayTrans.filter(t => t.date === dateStr);
-                    let dayNet = dTrans.reduce((acc, t) => { if(t.type === 'income') return acc + t.amount; if(t.type === 'expense') return acc - t.amount; if(t.type === 'transfer') return acc - t.amount; return acc; }, 0);
-                    const hasPlanned = dTrans.some(t => t.status === 'planned');
-                    const colorClass = dayNet >= 0 ? (hasPlanned ? 'text-green-400' : 'text-green-600') : (hasPlanned ? 'text-red-400' : 'text-red-600');
-                    const cell = document.createElement('div');
-                    cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
-                    cell.onclick = () => this.openDayModal(dateStr, dTrans);
-                    cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${hasPlanned ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
-                    grid.appendChild(cell);
-                }
-            },
-
-            // --- FUNCTION OPEN FORECAST ---
-            openForecastModal(type) {
-                const m = document.getElementById('modal-forecast');
-                const c = document.getElementById('forecast-modal-content');
-                const list = document.getElementById('forecast-list');
-                const title = document.getElementById('forecast-modal-title');
-                const totalDisplay = document.getElementById('forecast-total');
-
-                const typeName = type === 'income' ? 'Entrate' : 'Uscite';
-                title.textContent = `Prossime ${typeName} (60gg)`;
-
-                // Calcolo date
-                const today = new Date();
-                const limit = new Date();
-                limit.setDate(today.getDate() + 60);
-                const todayStr = today.toISOString().slice(0, 10);
-                const limitStr = limit.toISOString().slice(0, 10);
-
-                // Filtro
-                const items = Store.data.transactions.filter(t => 
-                    t.status === 'planned' && 
-                    t.type === type && 
-                    t.date >= todayStr && 
-                    t.date <= limitStr
-                ).sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                // Calcolo Totale
-                const total = items.reduce((acc, t) => acc + t.amount, 0);
-                totalDisplay.textContent = `€ ${total.toLocaleString('it-IT', {minimumFractionDigits: 2})}`;
-
-                // Render Lista (4 Colonne)
-                list.innerHTML = items.length ? items.map(t => {
-                    const catName = Store.data.categories.find(c => c.id === t.category)?.name || '???';
-                    const color = type === 'income' ? 'text-green-600' : 'text-red-600';
-                    const d = new Date(t.date);
-                    const dateFormatted = `${d.getDate()}/${d.getMonth()+1}`; // Giorno/Mese corto
-                    
-                    return `
-                        <div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer text-sm" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)">
-                            <div class="font-bold text-gray-400 text-xs">${dateFormatted}</div>
-                            <div class="font-medium text-gray-800 dark:text-gray-200 truncate" title="${t.description}">${t.description}</div>
-                            <div class="hidden sm:block text-xs text-gray-500 uppercase font-bold truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-center">${catName}</div>
-                            <div class="font-bold ${color} text-right whitespace-nowrap">€ ${t.amount.toLocaleString()}</div>
-                        </div>
+                Object.keys(expenseGroups).sort((a,b)=>expenseGroups[b].val - expenseGroups[a].val).forEach(g => {
+                    const data = expenseGroups[g];
+                    html += `
+                        <details class="group border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden">
+                            <summary class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                <div class="font-bold dark:text-white flex items-center gap-2"><i class="fas fa-chevron-right text-xs text-gray-400 group-open:rotate-90 transition"></i> ${g}</div>
+                                <div class="font-bold text-red-600">€ ${data.val.toLocaleString()}</div>
+                            </summary>
+                            <div class="p-3 bg-white dark:bg-dark-card border-t dark:border-gray-700">
+                                ${Object.keys(data.subs).sort((a,b)=>data.subs[b]-data.subs[a]).map(s => `
+                                    <div class="flex justify-between py-1 text-sm">
+                                        <span class="text-gray-600 dark:text-gray-300 pl-4 border-l-2 border-gray-200 dark:border-gray-600">${s}</span>
+                                        <span class="font-medium dark:text-white">€ ${data.subs[s].toLocaleString()}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </details>
                     `;
-                }).join('') : '<div class="text-center text-gray-400 py-8 italic">Nessuna previsione per i prossimi 60 giorni.</div>';
-
-                m.classList.remove('hidden');
-                requestAnimationFrame(() => {
-                    c.classList.remove('scale-95', 'opacity-0');
-                    c.classList.add('scale-100', 'opacity-100');
                 });
+                html += `</div></div>`; c.innerHTML = html;
+
+                setTimeout(() => {
+                    const iKeys = Object.keys(incomeGroups); const eKeys = Object.keys(expenseGroups);
+                    new Chart(document.getElementById('pieInc'), { type: 'doughnut', data: { labels: iKeys, datasets: [{ data: iKeys.map(k=>incomeGroups[k].val), backgroundColor: this.generateColors(iKeys.length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } });
+                    new Chart(document.getElementById('pieExp'), { type: 'doughnut', data: { labels: eKeys, datasets: [{ data: eKeys.map(k=>expenseGroups[k].val), backgroundColor: this.generateColors(eKeys.length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } });
+                }, 0);
             },
-
-            openDayModal(dateStr, transactions) {
-                const modal = document.getElementById('modal-day');
-                const content = document.getElementById('day-modal-content'); const list = document.getElementById('day-list');
-                
-                content.dataset.currentDate = dateStr;
-
-                modal.classList.remove('hidden'); requestAnimationFrame(() => { content.classList.remove('translate-y-full'); content.classList.add('translate-y-0'); });
-                document.getElementById('day-modal-date').textContent = new Date(dateStr).toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
-                document.getElementById('day-modal-summary').textContent = transactions.length ? `${transactions.length} movimenti` : 'Nessuna operazione';
-                document.getElementById('btn-day-add').onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(null, dateStr), 200); };
-                list.innerHTML = transactions.length === 0 ? `<div class="text-center text-gray-400 py-8">Nessun movimento</div>` : '';
-                transactions.forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category)?.name || '???';
-                    const div = document.createElement('div');
-                    div.className = `flex justify-between items-center p-3 rounded-xl border dark:border-dark-border ${t.status==='planned'?'bg-gray-50 dark:bg-gray-800 border-dashed':'bg-white dark:bg-dark-card'}`;
-                    div.onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(t), 200); };
-                    let colorClass = '';
-                    if (t.type === 'income') colorClass = t.status === 'planned' ? 'text-green-400' : 'text-green-600';
-                    else if (t.type === 'expense') colorClass = t.status === 'planned' ? 'text-red-400' : 'text-red-600';
-                    else colorClass = t.status === 'planned' ? 'text-purple-400' : 'text-purple-600';
-                    div.innerHTML = `<div class="flex items-center gap-3 flex-1"><div class="flex-1"><div class="font-bold text-sm dark:text-gray-200">${cat}</div><div class="text-xs text-gray-500">${t.description || ''}</div></div></div><div class="flex items-center gap-4"><div class="font-bold ${colorClass} whitespace-nowrap text-sm">${t.type==='income'?'+':(t.type==='transfer'&&t.amount<0?'+':'-')} € ${Math.abs(t.amount).toLocaleString()}</div><button onclick="event.stopPropagation(); App.toggleStatus('${t.id}')" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${t.status==='done'?'bg-green-500':'bg-gray-300 dark:bg-gray-600'}"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${t.status==='done'?'translate-x-6':'translate-x-1'}"/></button></div>`;
-                    list.appendChild(div);
-                });
+            renderDetailTab(container) {
+                if (this.detailState.cats === null && Store.data.categories.length > 0) this.detailState.cats = Store.data.categories.map(c => c.id);
+                const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
+                const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
+                container.innerHTML = `
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
+                        <div class="flex gap-2 mb-4"><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
+                        <div class="flex gap-4 mb-4"><label><input type="checkbox" class="detail-type-cb" value="expense" checked onchange="App.updateDetailView()"> Uscite</label><label><input type="checkbox" class="detail-type-cb" value="income" checked onchange="App.updateDetailView()"> Entrate</label></div>
+                        <div class="max-h-32 overflow-y-auto grid grid-cols-2 gap-2">${Store.data.categories.map(c=>`<label><input type="checkbox" class="detail-cat-cb" value="${c.id}" checked onchange="App.updateDetailView()"> ${c.name}</label>`).join('')}</div>
+                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'}">Totale Periodo: € ${tot.toLocaleString()}</div>
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden">
+                        ${filtered.map(t=>`<div class="flex justify-between p-3 border-b dark:border-gray-700"><div><div class="font-bold dark:text-white">${Store.data.categories.find(c=>c.id===t.category)?.name}</div><div class="text-xs text-gray-400">${t.date} - ${t.description}</div></div><div class="font-bold ${t.type==='income'?'text-green-500':'text-red-500'}">€ ${t.amount}</div></div>`).join('')}
+                    </div>
+                `;
             },
-
-            renderFunds(c) {
-                const funds = Store.data.categories.filter(x => x.type === 'transfer');
-                c.innerHTML = `<div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold dark:text-white">I Miei Fondi</h2><button onclick="App.openCatModal(null, 'transfer')" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow hover:bg-purple-700 transition">+ Nuovo</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${funds.map(f => {
-                    const saved = Store.data.transactions.filter(t => t.category === f.id && t.status === 'done').reduce((acc, t) => acc + t.amount, 0);
-                    const pct = f.target ? Math.max(0, Math.min(100, (saved / f.target) * 100)) : 0;
-                    return `<div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border border-purple-100 dark:border-purple-900/30"><div class="flex justify-between items-start mb-4"><div><h3 class="font-bold text-lg dark:text-white">${f.name}</h3><p class="text-xs text-gray-500">Obiettivo: € ${f.target.toLocaleString()}</p></div><div class="flex gap-2"><button onclick="App.openWithdrawModal('${f.id}')" class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 flex items-center justify-center hover:bg-purple-200 transition" title="Preleva"><i class="fas fa-money-bill-wave"></i></button><button onclick="App.openCatModal('${f.id}')" class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-pen"></i></button><button onclick="if(confirm('Eliminare questo fondo?')) Store.delCat('${f.id}')" class="w-8 h-8 rounded-full bg-red-50 dark:bg-red-900/20 text-red-500 flex items-center justify-center hover:bg-red-100 transition" title="Elimina"><i class="fas fa-trash"></i></button></div></div><div class="flex justify-between items-end mb-2"><span class="text-2xl font-bold text-purple-600 dark:text-purple-400">€ ${saved.toLocaleString()}</span><span class="text-xs font-bold text-purple-600 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded">${Math.round(pct)}%</span></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3 overflow-hidden"><div class="bg-gradient-to-r from-purple-500 to-indigo-600 h-3 rounded-full progress-fill" style="width: ${pct}%"></div></div></div>`;
-                }).join('')}</div>`;
-            },
-
-            renderCats(c) {
-                const types = { expense: {l:'Uscite', c:'text-red-500'}, income: {l:'Entrate', c:'text-green-500'} };
-                c.innerHTML = `<h2 class="text-2xl font-bold mb-6 dark:text-white">Gestione Categorie</h2>`;
-                Object.keys(types).forEach(t => {
-                    const cats = Store.data.categories.filter(x => x.type === t);
-                    c.innerHTML += `<div class="mb-8"><div class="flex justify-between items-center mb-4 sticky top-16 bg-gray-50 dark:bg-dark-bg z-10 py-2"><h3 class="font-bold text-gray-500 uppercase text-xs tracking-wider">${types[t].l}</h3><button onclick="App.openCatModal(null, '${t}')" class="text-primary-600 text-sm font-bold bg-primary-50 dark:bg-primary-900/20 px-3 py-1 rounded-full">+ Aggiungi</button></div><div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">${cats.map(cat => `<div class="bg-white dark:bg-dark-card p-4 rounded-xl shadow-sm border dark:border-dark-border flex justify-between items-center"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center ${types[t].c} font-bold text-lg">${cat.name.charAt(0)}</div><div><div class="font-bold dark:text-white">${cat.name}</div><div class="text-xs text-gray-400">Budget: € ${cat.budget}</div></div></div><div class="flex gap-2"><button onclick="App.openCatModal('${cat.id}')" class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-blue-500 transition flex items-center justify-center"><i class="fas fa-pen"></i></button><button onclick="if(confirm('Eliminare?')) { Store.delCat('${cat.id}'); }" class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-400 hover:text-red-500 transition flex items-center justify-center"><i class="fas fa-trash"></i></button></div></div>`).join('')}</div></div>`;
-                });
-            },
-
             moveMonth(d) { this.date = new Date(this.date.getFullYear(), this.date.getMonth() + d, 1); this.render(); },
             moveDate(d) { this.analysisTab === 'monthly' ? this.date = new Date(this.date.getFullYear(), this.date.getMonth() + d, 1) : this.date.setFullYear(this.date.getFullYear() + d); this.render(); },
             popCats(type) { document.getElementById('t-category').innerHTML = Store.data.categories.filter(c => c.type === type).map(c => `<option value="${c.id}">${c.name}</option>`).join(''); },
-            openWithdrawModal(fundId) { const m=document.getElementById('modal-withdraw'), c=document.getElementById('withdraw-modal-content'); document.getElementById('form-withdraw').reset(); document.getElementById('w-fund-id').value = fundId; m.classList.remove('hidden'); requestAnimationFrame(()=>{c.classList.remove('scale-95','opacity-0');c.classList.add('scale-100','opacity-100');}); },
-            
+            openWithdrawModal(fundId) { document.getElementById('form-withdraw').reset(); document.getElementById('w-fund-id').value = fundId; document.getElementById('modal-withdraw').classList.remove('hidden'); requestAnimationFrame(()=>{document.getElementById('withdraw-modal-content').classList.remove('scale-95','opacity-0');document.getElementById('withdraw-modal-content').classList.add('scale-100','opacity-100');}); },
             openTransModal(t = null, datePre = null) {
                 const m = document.getElementById('modal-transaction'), c = document.getElementById('trans-modal-content');
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
@@ -1145,39 +539,32 @@
                 document.getElementById('t-id').value = t ? t.id : ''; document.getElementById('t-amount').value = t ? t.amount : '';
                 document.getElementById('t-date').value = t ? t.date : (datePre || new Date().toISOString().slice(0,10)); document.getElementById('t-desc').value = t ? t.description : '';
                 document.getElementById('t-status').checked = t ? t.status === 'done' : false;
-                const type = t ? t.type : 'expense';
-                document.querySelectorAll('input[name="type"]').forEach(r => r.checked = (r.value === type)); this.popCats(type); if(t) document.getElementById('t-category').value = t.category;
-                
-                document.getElementById('t-repeat').checked = false;
-                document.getElementById('repeat-options').classList.add('hidden');
-                document.getElementById('repeat-section').classList.toggle('hidden', !!t);
-
-                document.getElementById('btn-delete-trans').classList.toggle('hidden', !t);
-                document.getElementById('btn-copy-trans').classList.toggle('hidden', !t);
+                const type = t ? t.type : 'expense'; document.querySelectorAll('input[name="type"]').forEach(r => r.checked = (r.value === type)); this.popCats(type); if(t) document.getElementById('t-category').value = t.category;
+                document.getElementById('t-repeat').checked = false; document.getElementById('repeat-options').classList.add('hidden'); document.getElementById('repeat-section').classList.toggle('hidden', !!t);
+                document.getElementById('btn-delete-trans').classList.toggle('hidden', !t); document.getElementById('btn-copy-trans').classList.toggle('hidden', !t);
             },
             openCatModal(id = null, type = 'expense') {
                 const m = document.getElementById('modal-category'), c = document.getElementById('cat-modal-content');
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
                 const cat = id ? Store.data.categories.find(c => c.id === id) : null; const finalType = cat ? cat.type : type;
-                document.getElementById('c-id').value = id || ''; document.getElementById('c-type').value = finalType; document.getElementById('c-name').value = cat ? cat.name : '';
+                document.getElementById('c-id').value = id || ''; document.getElementById('c-type').value = finalType; document.getElementById('c-name').value = cat ? cat.name : ''; document.getElementById('c-group').value = cat ? (cat.group || '') : '';
                 document.getElementById('field-budget').classList.toggle('hidden', finalType === 'transfer'); document.getElementById('field-target').classList.toggle('hidden', finalType !== 'transfer');
                 if(finalType === 'transfer') document.getElementById('c-target').value = cat ? cat.target : ''; else document.getElementById('c-budget').value = cat ? cat.budget : '';
             },
-            closeModals() {
-                document.querySelectorAll('.fixed').forEach(m => {
-                    if(!m.classList.contains('hidden')) {
-                        const c = m.querySelector('div[id$="-content"]');
-                        if(c) { c.classList.remove('scale-100', 'opacity-100', 'translate-y-0'); if(c.id === 'day-modal-content') c.classList.add('translate-y-full'); else c.classList.add('scale-95', 'opacity-0'); }
-                        setTimeout(() => m.classList.add('hidden'), 200);
-                    }
-                });
+            closeModals() { document.querySelectorAll('.fixed').forEach(m => { if(!m.classList.contains('hidden')) { const c = m.querySelector('div[id$="-content"]'); if(c) { c.classList.remove('scale-100', 'opacity-100', 'translate-y-0'); if(c.id === 'day-modal-content') c.classList.add('translate-y-full'); else c.classList.add('scale-95', 'opacity-0'); } setTimeout(() => m.classList.add('hidden'), 200); } }); },
+            openForecastModal(type) {
+                const m = document.getElementById('modal-forecast'), c = document.getElementById('forecast-modal-content'), list = document.getElementById('forecast-list');
+                document.getElementById('forecast-modal-title').textContent = `Prossime ${type==='income'?'Entrate':'Uscite'} (60gg)`;
+                const today = new Date(), limit = new Date(); limit.setDate(today.getDate() + 60);
+                const items = Store.data.transactions.filter(t => t.status === 'planned' && t.type === type && t.date >= today.toISOString().slice(0, 10) && t.date <= limit.toISOString().slice(0, 10)).sort((a, b) => new Date(a.date) - new Date(b.date));
+                document.getElementById('forecast-total').textContent = `€ ${items.reduce((a,t)=>a+t.amount,0).toLocaleString('it-IT',{minimumFractionDigits:2})}`;
+                list.innerHTML = items.length ? items.map(t => `<div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer text-sm" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)"><div class="font-bold text-gray-400 text-xs">${new Date(t.date).getDate()}/${new Date(t.date).getMonth()+1}</div><div class="font-medium text-gray-800 dark:text-gray-200 truncate">${t.description}</div><div class="hidden sm:block text-xs text-gray-500 uppercase font-bold truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-center">${Store.data.categories.find(c=>c.id===t.category)?.name||'???'}</div><div class="font-bold ${type==='income'?'text-green-600':'text-red-600'} text-right whitespace-nowrap">€ ${t.amount.toLocaleString()}</div></div>`).join('') : '<div class="text-center text-gray-400 py-8">Nessuna previsione.</div>';
+                m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
             },
             generateColors(count) { return Array.from({length: count}, (_, i) => ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'][i % 10]); },
             showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-[-20px]'); t.classList.add('opacity-100', 'translate-y-0'); setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-[-20px]'); }, 3000); }
         };
-
         document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 </html>
-
