@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 3.2</title>
+    <title>FinPe 3.3</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -36,7 +36,6 @@
         .progress-fill { transition: width 0.5s ease-out; }
         #auth-overlay { transition: opacity 0.5s; }
         .macro-check { transform: scale(1.3); cursor: pointer; }
-        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
         
         details > summary { list-style: none; cursor: pointer; }
@@ -66,7 +65,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.2 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.3 Cloud</span>
                 </div>
             </div>
             
@@ -423,18 +422,16 @@
                     <div class="grid grid-cols-7 gap-1" id="cal-grid"></div>
                 `;
                 const grid = document.getElementById('cal-grid');
-                const firstDay = new Date(y, m, 1).getDay() || 7;
-                for(let i=1; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+                for(let i=1; i<new Date(y, m, 1).getDay() || 7; i++) grid.appendChild(document.createElement('div'));
                 for(let i=1; i<=new Date(y, m + 1, 0).getDate(); i++) {
                     const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                     const dTrans = dayTrans.filter(t => t.date === dateStr);
                     let dayNet = dTrans.reduce((acc, t) => { if(t.type === 'income') return acc + t.amount; if(t.type === 'expense') return acc - t.amount; if(t.type === 'transfer') return acc - t.amount; return acc; }, 0);
-                    const hasPlanned = dTrans.some(t => t.status === 'planned');
-                    const colorClass = dayNet >= 0 ? (hasPlanned ? 'text-green-400' : 'text-green-600') : (hasPlanned ? 'text-red-400' : 'text-red-600');
+                    const colorClass = dayNet >= 0 ? (dTrans.some(t=>t.status==='planned') ? 'text-green-400' : 'text-green-600') : (dTrans.some(t=>t.status==='planned') ? 'text-red-400' : 'text-red-600');
                     const cell = document.createElement('div');
                     cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
                     cell.onclick = () => this.openDayModal(dateStr, dTrans);
-                    cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${hasPlanned ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
+                    cell.innerHTML = `<div class="relative h-full flex flex-col pointer-events-none"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${dTrans.some(t=>t.status==='planned') ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
                     grid.appendChild(cell);
                 }
             },
@@ -458,184 +455,42 @@
             renderMonthlyTab(c, y, m) {
                 const useMacro = this.monthlyViewMode === 'group';
                 let dataMap = {};
-                
                 Store.data.transactions.filter(t => t.status==='done' && t.type==='income' && new Date(t.date)>=new Date(y,m,1) && new Date(t.date)<=new Date(y,m+1,0)).forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category);
-                    const key = useMacro ? (cat?.group || cat?.name || 'Altro') : (cat?.name || 'Altro');
-                    if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 };
-                    dataMap[key].inc += t.amount;
+                    const cat = Store.data.categories.find(c => c.id === t.category); const key = useMacro ? (cat?.group || cat?.name || 'Altro') : (cat?.name || 'Altro'); if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 }; dataMap[key].inc += t.amount;
                 });
-
-                Store.data.categories.forEach(cat => {
-                    const key = useMacro ? (cat.group || cat.name) : cat.name;
-                    if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 };
-                    dataMap[key].budget += (cat.budget || 0);
-                });
-                
+                Store.data.categories.forEach(cat => { const key = useMacro ? (cat.group || cat.name) : cat.name; if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 }; dataMap[key].budget += (cat.budget || 0); });
                 Store.data.transactions.filter(t => t.status==='done' && t.type==='expense' && new Date(t.date)>=new Date(y,m,1) && new Date(t.date)<=new Date(y,m+1,0)).forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category);
-                    const key = useMacro ? (cat?.group || cat?.name || 'Altro') : (cat?.name || 'Altro');
-                    if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 };
-                    dataMap[key].exp += t.amount;
+                    const cat = Store.data.categories.find(c => c.id === t.category); const key = useMacro ? (cat?.group || cat?.name || 'Altro') : (cat?.name || 'Altro'); if(!dataMap[key]) dataMap[key] = { inc:0, exp:0, budget:0 }; dataMap[key].exp += t.amount;
                 });
-
                 const allLabels = Object.keys(dataMap);
                 const incLabels = allLabels.filter(k => dataMap[k].inc > 0).sort((a,b) => dataMap[b].inc - dataMap[a].inc);
                 const incData = incLabels.map(k => dataMap[k].inc);
                 const expLabels = allLabels.filter(k => dataMap[k].exp > 0).sort((a,b) => dataMap[b].exp - dataMap[a].exp);
                 const expData = expLabels.map(k => dataMap[k].exp);
 
-                // --- BUILD LEFT COLUMN (INCOME) ---
                 let leftHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3><div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div></div><div class="space-y-4">`;
-                incLabels.forEach(k => {
-                    const d = dataMap[k];
-                    let barColor = 'bg-blue-500'; let pct = 0;
-                    if (d.budget > 0) {
-                        pct = (d.inc / d.budget) * 100;
-                        barColor = d.inc < d.budget ? 'bg-yellow-500' : 'bg-green-500';
-                    } else { pct = 100; barColor = 'bg-blue-500'; }
-                    const width = Math.min(pct, 100);
-                    leftHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.inc.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`;
-                });
-                leftHtml += `</div>`;
-
-                // --- BUILD RIGHT COLUMN (EXPENSE) ---
+                incLabels.forEach(k => { const d = dataMap[k]; let barColor = 'bg-blue-500'; let pct = 0; if (d.budget > 0) { pct = (d.inc / d.budget) * 100; barColor = d.inc < d.budget ? 'bg-yellow-500' : 'bg-green-500'; } else { pct = 100; barColor = 'bg-blue-500'; } const width = Math.min(pct, 100); leftHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.inc.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`; }); leftHtml += `</div>`;
+                
                 let rightHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3><div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div></div><div class="space-y-4">`;
-                expLabels.forEach(k => {
-                    const d = dataMap[k];
-                    let barColor = 'bg-blue-500'; let pct = 0;
-                    if (d.budget > 0) {
-                        pct = (d.exp / d.budget) * 100;
-                        barColor = d.exp > d.budget ? 'bg-red-500' : 'bg-green-500';
-                    } else { pct = 100; barColor = 'bg-blue-500'; }
-                    const width = Math.min(pct, 100);
-                    rightHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.exp.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`;
-                });
-                rightHtml += `</div>`;
+                expLabels.forEach(k => { const d = dataMap[k]; let barColor = 'bg-blue-500'; let pct = 0; if (d.budget > 0) { pct = (d.exp / d.budget) * 100; barColor = d.exp > d.budget ? 'bg-red-500' : 'bg-green-500'; } else { pct = 100; barColor = 'bg-blue-500'; } const width = Math.min(pct, 100); rightHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.exp.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`; }); rightHtml += `</div>`;
 
-                c.innerHTML = `
-                    <div class="mb-6 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border">
-                        <input type="checkbox" id="monthly-macro-toggle" class="w-5 h-5 text-blue-600 rounded" ${useMacro?'checked':''} onchange="App.monthlyViewMode=this.checked?'group':'category'; App.render()">
-                        <label for="monthly-macro-toggle" class="font-bold text-sm dark:text-white cursor-pointer select-none">Raggruppa per Macro Categorie</label>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${leftHtml}</div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${rightHtml}</div>
-                    </div>
-                `;
-
-                setTimeout(() => {
-                    new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels: incLabels, datasets: [{ data: incData, backgroundColor: this.generateColors(incLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                    new Chart(document.getElementById('chartPieExp'), { type: 'doughnut', data: { labels: expLabels, datasets: [{ data: expData, backgroundColor: this.generateColors(expLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                }, 0);
+                c.innerHTML = `<div class="mb-6 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border"><input type="checkbox" id="monthly-macro-toggle" class="w-5 h-5 text-blue-600 rounded" ${useMacro?'checked':''} onchange="App.monthlyViewMode=this.checked?'group':'category'; App.render()"><label for="monthly-macro-toggle" class="font-bold text-sm dark:text-white cursor-pointer select-none">Raggruppa per Macro Categorie</label></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${leftHtml}</div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${rightHtml}</div></div>`;
+                setTimeout(() => { new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels: incLabels, datasets: [{ data: incData, backgroundColor: this.generateColors(incLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); new Chart(document.getElementById('chartPieExp'), { type: 'doughnut', data: { labels: expLabels, datasets: [{ data: expData, backgroundColor: this.generateColors(expLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }, 0);
             },
             renderTrendsTab(c) {
-                // Initialize default selections if needed
                 if(!this.selectedTrendCat && Store.data.categories.length) this.selectedTrendCat = Store.data.categories[0].id;
-                // Get Unique Groups
                 const groups = [...new Set(Store.data.categories.map(c => c.group).filter(g => g))].sort();
                 if(!this.selectedTrendGroup && groups.length) this.selectedTrendGroup = groups[0];
-
                 const cat = Store.data.categories.find(x => x.id === this.selectedTrendCat);
-                
-                // Prepare Data Arrays
-                const labels = [];
-                const catData = {};
-                const groupData = {};
-                const monthlyAvg = {}; 
-                const topMonths = {};
-
-                // Build Time Series
+                const labels = []; const catData = {}; const groupData = {}; const monthlyAvg = {};  const topMonths = {};
                 Store.data.transactions.filter(t => t.status === 'done').sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
-                    const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear();
-                    if (!labels.includes(k)) labels.push(k);
-                    
-                    // Cat Data
-                    if (this.selectedTrendCat && t.category === this.selectedTrendCat) {
-                        catData[k] = (catData[k] || 0) + t.amount;
-                        // Stats for Cat only
-                        if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() };
-                        monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
-                        if(!topMonths[y]) topMonths[y] = [];
-                    }
-
-                    // Group Data
-                    if (this.selectedTrendGroup) {
-                        const tCat = Store.data.categories.find(c => c.id === t.category);
-                        if (tCat && tCat.group === this.selectedTrendGroup) {
-                            groupData[k] = (groupData[k] || 0) + t.amount;
-                        }
-                    }
+                    const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear(); if (!labels.includes(k)) labels.push(k);
+                    if (this.selectedTrendCat && t.category === this.selectedTrendCat) { catData[k] = (catData[k] || 0) + t.amount; if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() }; monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth()); if(!topMonths[y]) topMonths[y] = []; }
+                    if (this.selectedTrendGroup) { const tCat = Store.data.categories.find(c => c.id === t.category); if (tCat && tCat.group === this.selectedTrendGroup) groupData[k] = (groupData[k] || 0) + t.amount; }
                 });
-
-                // Top Months Calculation (Based on Category if selected, else Group)
-                const sourceData = this.selectedTrendCat ? catData : groupData;
-                Object.keys(sourceData).forEach(ym => {
-                    const [y, m] = ym.split('-'); const val = sourceData[ym];
-                    if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val});
-                });
-                Object.keys(topMonths).forEach(y => { topMonths[y].sort((a,b) => b.v - a.v); topMonths[y] = topMonths[y].slice(0,3); });
-
-                let html = `
-                    <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label>
-                            <select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendCat=this.value; App.render()">
-                                <option value="">Nessuna</option>
-                                ${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Macro Gruppo</label>
-                            <select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendGroup=this.value; App.render()">
-                                <option value="">Nessuno</option>
-                                ${groups.map(g => `<option value="${g}" ${g===this.selectedTrendGroup?'selected':''}>${g}</option>`).join('')}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <h3 class="font-bold mb-4 dark:text-white text-sm">Confronto Andamento</h3>
-                        <div class="h-64 relative"><canvas id="chartTrendCompare"></canvas></div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile (Categoria Selezionata)</h3>
-                            <div class="space-y-2">
-                                ${Object.keys(monthlyAvg).length ? Object.keys(monthlyAvg).sort().reverse().map(y => {
-                                    const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1);
-                                    return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`;
-                                }).join('') : '<div class="text-xs text-gray-400">Seleziona una categoria per vedere le medie.</div>'}
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3>
-                            <div class="space-y-4">
-                                ${Object.keys(topMonths).length ? Object.keys(topMonths).sort().reverse().map(y => {
-                                    return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`;
-                                }).join('') : '<div class="text-xs text-gray-400">Dati insufficienti.</div>'}
-                            </div>
-                        </div>
-                    </div>
-                `;
-                c.innerHTML = html;
-
-                setTimeout(() => {
-                    const ds = [];
-                    if (this.selectedTrendCat) {
-                        ds.push({ label: 'Categoria', data: labels.map(k => catData[k]||0), borderColor: '#3b82f6', tension: 0.3, fill: false });
-                    }
-                    if (this.selectedTrendGroup) {
-                        ds.push({ label: 'Macro Gruppo', data: labels.map(k => groupData[k]||0), borderColor: '#a855f7', tension: 0.3, borderDash: [5,5], fill: false });
-                    }
-
-                    new Chart(document.getElementById('chartTrendCompare'), {
-                        type: 'line',
-                        data: { labels: labels, datasets: ds },
-                        options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } }
-                    });
-                }, 0);
+                const sourceData = this.selectedTrendCat ? catData : groupData; Object.keys(sourceData).forEach(ym => { const [y, m] = ym.split('-'); const val = sourceData[ym]; if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val}); }); Object.keys(topMonths).forEach(y => { topMonths[y].sort((a,b) => b.v - a.v); topMonths[y] = topMonths[y].slice(0,3); });
+                c.innerHTML = `<div class="grid grid-cols-2 gap-4 mb-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label><select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendCat=this.value; App.render()"><option value="">Nessuna</option>${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name}</option>`).join('')}</select></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Macro Gruppo</label><select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendGroup=this.value; App.render()"><option value="">Nessuno</option>${groups.map(g => `<option value="${g}" ${g===this.selectedTrendGroup?'selected':''}>${g}</option>`).join('')}</select></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6"><h3 class="font-bold mb-4 dark:text-white text-sm">Confronto Andamento</h3><div class="h-64 relative"><canvas id="chartTrendCompare"></canvas></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile (Categoria Selezionata)</h3><div class="space-y-2">${Object.keys(monthlyAvg).length ? Object.keys(monthlyAvg).sort().reverse().map(y => { const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1); return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`; }).join('') : '<div class="text-xs text-gray-400">Seleziona una categoria per vedere le medie.</div>'}</div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3><div class="space-y-4">${Object.keys(topMonths).length ? Object.keys(topMonths).sort().reverse().map(y => { return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`; }).join('') : '<div class="text-xs text-gray-400">Dati insufficienti.</div>'}</div></div></div>`;
+                setTimeout(() => { const ds = []; if (this.selectedTrendCat) ds.push({ label: 'Categoria', data: labels.map(k => catData[k]||0), borderColor: '#3b82f6', tension: 0.3, fill: false }); if (this.selectedTrendGroup) ds.push({ label: 'Macro Gruppo', data: labels.map(k => groupData[k]||0), borderColor: '#a855f7', tension: 0.3, borderDash: [5,5], fill: false }); new Chart(document.getElementById('chartTrendCompare'), { type: 'line', data: { labels: labels, datasets: ds }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } } }); }, 0);
             },
             renderAnnualTab(c, y) {
                 const incomeGroups = {}; const expenseGroups = {};
@@ -644,95 +499,28 @@
                     const target = t.type === 'income' ? incomeGroups : (t.type === 'expense' ? expenseGroups : null);
                     if(target) { if(!target[groupName]) target[groupName] = { val: 0, subs: {} }; target[groupName].val += t.amount; const subName = cat ? cat.name : 'Sconosciuto'; if(!target[groupName].subs[subName]) target[groupName].subs[subName] = 0; target[groupName].subs[subName] += t.amount; }
                 });
-                
-                // Helper to render accordion lists
-                const renderList = (groups, colorClass) => {
-                    return Object.keys(groups).sort((a,b)=>groups[b].val - groups[a].val).map(g => {
-                        const data = groups[g];
-                        return `<details class="group border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden mb-2"><summary class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"><div class="font-bold dark:text-white flex items-center gap-2"><i class="fas fa-chevron-right text-xs text-gray-400 group-open:rotate-90 transition"></i> ${g}</div><div class="font-bold ${colorClass}">€ ${data.val.toLocaleString()}</div></summary><div class="p-3 bg-white dark:bg-dark-card border-t dark:border-gray-700">${Object.keys(data.subs).sort((a,b)=>data.subs[b]-data.subs[a]).map(s => `<div class="flex justify-between py-1 text-sm"><span class="text-gray-600 dark:text-gray-300 pl-4 border-l-2 border-gray-200 dark:border-gray-600">${s}</span><span class="font-medium dark:text-white">€ ${data.subs[s].toLocaleString()}</span></div>`).join('')}</div></details>`;
-                    }).join('');
-                };
-
-                let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Entrate ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieInc"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Uscite ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieExp"></canvas></div></div></div>`;
-                
-                html += `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500 border-b pb-2">Dettaglio Entrate</h3>
-                            <div class="space-y-2">${renderList(incomeGroups, 'text-green-600')}</div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500 border-b pb-2">Dettaglio Uscite</h3>
-                            <div class="space-y-2">${renderList(expenseGroups, 'text-red-600')}</div>
-                        </div>
-                    </div>
-                `;
-                
+                const renderList = (groups, colorClass) => Object.keys(groups).sort((a,b)=>groups[b].val - groups[a].val).map(g => {
+                    const data = groups[g];
+                    return `<details class="group border border-gray-100 dark:border-gray-700 rounded-xl overflow-hidden mb-2"><summary class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition"><div class="font-bold dark:text-white flex items-center gap-2"><i class="fas fa-chevron-right text-xs text-gray-400 group-open:rotate-90 transition"></i> ${g}</div><div class="font-bold ${colorClass}">€ ${data.val.toLocaleString()}</div></summary><div class="p-3 bg-white dark:bg-dark-card border-t dark:border-gray-700">${Object.keys(data.subs).sort((a,b)=>data.subs[b]-data.subs[a]).map(s => `<div class="flex justify-between py-1 text-sm"><span class="text-gray-600 dark:text-gray-300 pl-4 border-l-2 border-gray-200 dark:border-gray-600">${s}</span><span class="font-medium dark:text-white">€ ${data.subs[s].toLocaleString()}</span></div>`).join('')}</div></details>`;
+                }).join('');
+                let html = `<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Entrate ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieInc"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm text-center">Uscite ${y} (per Macro-Gruppo)</h3><div class="h-60 relative"><canvas id="pieExp"></canvas></div></div></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500 border-b pb-2">Dettaglio Entrate</h3><div class="space-y-2">${renderList(incomeGroups, 'text-green-600')}</div></div><div class="bg-white dark:bg-dark-card p-5 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-4 dark:text-white text-sm uppercase text-gray-500 border-b pb-2">Dettaglio Uscite</h3><div class="space-y-2">${renderList(expenseGroups, 'text-red-600')}</div></div></div>`;
                 c.innerHTML = html;
-                setTimeout(() => {
-                    const iKeys = Object.keys(incomeGroups); const eKeys = Object.keys(expenseGroups);
-                    new Chart(document.getElementById('pieInc'), { type: 'doughnut', data: { labels: iKeys, datasets: [{ data: iKeys.map(k=>incomeGroups[k].val), backgroundColor: this.generateColors(iKeys.length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } });
-                    new Chart(document.getElementById('pieExp'), { type: 'doughnut', data: { labels: eKeys, datasets: [{ data: eKeys.map(k=>expenseGroups[k].val), backgroundColor: this.generateColors(eKeys.length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } });
-                }, 0);
+                setTimeout(() => { new Chart(document.getElementById('pieInc'), { type: 'doughnut', data: { labels: Object.keys(incomeGroups), datasets: [{ data: Object.keys(incomeGroups).map(k=>incomeGroups[k].val), backgroundColor: this.generateColors(Object.keys(incomeGroups).length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } }); new Chart(document.getElementById('pieExp'), { type: 'doughnut', data: { labels: Object.keys(expenseGroups), datasets: [{ data: Object.keys(expenseGroups).map(k=>expenseGroups[k].val), backgroundColor: this.generateColors(Object.keys(expenseGroups).length) }] }, options: { plugins: { legend: { position: 'bottom', labels: { boxWidth: 10 } } } } }); }, 0);
             },
             renderDetailTab(container) {
                 if (this.detailState.cats === null && Store.data.categories.length > 0) this.detailState.cats = Store.data.categories.map(c => c.id);
                 const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
                 const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
-                
-                // --- VISUAL LOGIC FOR PILL BUTTONS (Direct JS Style Injection) ---
-                const getTypeStyle = (type, color) => this.detailState.types.includes(type) 
-                    ? `background-color: ${color}; color: white; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);` 
-                    : `background-color: #f3f4f6; color: #9ca3af; border: none; opacity: 0.7;`;
-                
-                const getCatStyle = (id) => this.detailState.cats.includes(id)
-                    ? `background-color: #2563eb; color: white; border: none;`
-                    : `background-color: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb;`;
-
+                const getTypeStyle = (type, color) => this.detailState.types.includes(type) ? `background-color: ${color}; color: white; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);` : `background-color: #f3f4f6; color: #9ca3af; border: none; opacity: 0.7;`;
+                const getCatStyle = (id) => this.detailState.cats.includes(id) ? `background-color: #2563eb; color: white; border: none;` : `background-color: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb;`;
                 container.innerHTML = `
                     <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <div class="flex gap-2 mb-4">
-                            <input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()">
-                            <input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()">
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <button onclick="App.toggleDetailType('expense')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('expense', '#ef4444')}">Uscite</button>
-                            <button onclick="App.toggleDetailType('income')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('income', '#10b981')}">Entrate</button>
-                            <button onclick="App.toggleDetailType('transfer')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('transfer', '#8b5cf6')}">Fondi</button>
-                        </div>
-
-                        <div class="border-t dark:border-gray-700 pt-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="text-xs font-bold uppercase text-gray-500">Categorie</span>
-                                <div class="flex gap-2">
-                                    <button onclick="App.toggleDetailCatsAll(true)" class="text-xs font-bold text-blue-500 hover:underline">Tutte</button>
-                                    <button onclick="App.toggleDetailCatsAll(false)" class="text-xs text-gray-400 hover:underline">Nessuna</button>
-                                </div>
-                            </div>
-                            <div class="max-h-40 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                ${Store.data.categories.map(c => `
-                                    <button onclick="App.toggleDetailCat('${c.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all truncate text-center" style="${getCatStyle(c.id)}">${c.name}</button>
-                                `).join('')}
-                            </div>
-                        </div>
+                        <div class="flex gap-2 mb-4"><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
+                        <div class="flex flex-wrap gap-2 mb-4"><button onclick="App.toggleDetailType('expense')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('expense', '#ef4444')}">Uscite</button><button onclick="App.toggleDetailType('income')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('income', '#10b981')}">Entrate</button><button onclick="App.toggleDetailType('transfer')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('transfer', '#8b5cf6')}">Fondi</button></div>
+                        <div class="border-t dark:border-gray-700 pt-4"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold uppercase text-gray-500">Categorie</span><div class="flex gap-2"><button onclick="App.toggleDetailCatsAll(true)" class="text-xs font-bold text-blue-500 hover:underline">Tutte</button><button onclick="App.toggleDetailCatsAll(false)" class="text-xs text-gray-400 hover:underline">Nessuna</button></div></div><div class="max-h-40 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2">${Store.data.categories.map(c => `<button onclick="App.toggleDetailCat('${c.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all truncate text-center" style="${getCatStyle(c.id)}">${c.name}</button>`).join('')}</div></div>
                     </div>
-
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'} shadow-sm border dark:border-dark-border">
-                        Totale Periodo: € ${tot.toLocaleString()}
-                    </div>
-
-                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border dark:border-dark-border">
-                        ${filtered.length > 0 ? filtered.map(t => `
-                            <div class="flex justify-between p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer" onclick="App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}'))">
-                                <div>
-                                    <div class="font-bold text-sm dark:text-white">${Store.data.categories.find(c=>c.id===t.category)?.name || '???'}</div>
-                                    <div class="text-xs text-gray-400 mt-0.5">${new Date(t.date).toLocaleDateString()} - ${t.description}</div>
-                                </div>
-                                <div class="font-bold ${t.type==='income'?'text-green-500':'text-red-500'}">€ ${t.amount.toLocaleString()}</div>
-                            </div>
-                        `).join('') : '<div class="p-8 text-center text-gray-400 text-sm">Nessuna transazione trovata con questi filtri.</div>'}
-                    </div>
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'} shadow-sm border dark:border-dark-border">Totale Periodo: € ${tot.toLocaleString()}</div>
+                    <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden border dark:border-dark-border">${filtered.length > 0 ? filtered.map(t => `<div class="flex justify-between p-4 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer" onclick="App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}'))"><div><div class="font-bold text-sm dark:text-white">${Store.data.categories.find(c=>c.id===t.category)?.name || '???'}</div><div class="text-xs text-gray-400 mt-0.5">${new Date(t.date).toLocaleDateString()} - ${t.description}</div></div><div class="font-bold ${t.type==='income'?'text-green-500':'text-red-500'}">€ ${t.amount.toLocaleString()}</div></div>`).join('') : '<div class="p-8 text-center text-gray-400 text-sm">Nessuna transazione trovata con questi filtri.</div>'}</div>
                 `;
             },
             renderFunds(c) {
