@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 3.3</title>
+    <title>FinPe 3.4 Stable Fix</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -36,6 +36,7 @@
         .progress-fill { transition: width 0.5s ease-out; }
         #auth-overlay { transition: opacity 0.5s; }
         .macro-check { transform: scale(1.3); cursor: pointer; }
+        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
         
         details > summary { list-style: none; cursor: pointer; }
@@ -65,7 +66,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.3 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.4 Cloud</span>
                 </div>
             </div>
             
@@ -431,7 +432,7 @@
                     const cell = document.createElement('div');
                     cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
                     cell.onclick = () => this.openDayModal(dateStr, dTrans);
-                    cell.innerHTML = `<div class="relative h-full flex flex-col pointer-events-none"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${dTrans.some(t=>t.status==='planned') ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
+                    cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${dTrans.some(t=>t.status==='planned') ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
                     grid.appendChild(cell);
                 }
             },
@@ -468,13 +469,22 @@
                 const expLabels = allLabels.filter(k => dataMap[k].exp > 0).sort((a,b) => dataMap[b].exp - dataMap[a].exp);
                 const expData = expLabels.map(k => dataMap[k].exp);
 
-                let leftHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3><div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div></div><div class="space-y-4">`;
-                incLabels.forEach(k => { const d = dataMap[k]; let barColor = 'bg-blue-500'; let pct = 0; if (d.budget > 0) { pct = (d.inc / d.budget) * 100; barColor = d.inc < d.budget ? 'bg-yellow-500' : 'bg-green-500'; } else { pct = 100; barColor = 'bg-blue-500'; } const width = Math.min(pct, 100); leftHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.inc.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`; }); leftHtml += `</div>`;
-                
-                let rightHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3><div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div></div><div class="space-y-4">`;
-                expLabels.forEach(k => { const d = dataMap[k]; let barColor = 'bg-blue-500'; let pct = 0; if (d.budget > 0) { pct = (d.exp / d.budget) * 100; barColor = d.exp > d.budget ? 'bg-red-500' : 'bg-green-500'; } else { pct = 100; barColor = 'bg-blue-500'; } const width = Math.min(pct, 100); rightHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.exp.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`; }); rightHtml += `</div>`;
+                const renderList = (labels, type) => {
+                    return labels.map(k => {
+                        const d = dataMap[k];
+                        const val = type === 'inc' ? d.inc : d.exp;
+                        let barColor = 'bg-blue-500'; let pct = 0;
+                        if (d.budget > 0) {
+                            pct = (val / d.budget) * 100;
+                            if (type === 'inc') barColor = val < d.budget ? 'bg-yellow-500' : 'bg-green-500';
+                            else barColor = val > d.budget ? 'bg-red-500' : 'bg-green-500';
+                        } else { pct = 100; barColor = 'bg-blue-500'; }
+                        const width = Math.min(pct, 100);
+                        return `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${val.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`;
+                    }).join('');
+                };
 
-                c.innerHTML = `<div class="mb-6 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border"><input type="checkbox" id="monthly-macro-toggle" class="w-5 h-5 text-blue-600 rounded" ${useMacro?'checked':''} onchange="App.monthlyViewMode=this.checked?'group':'category'; App.render()"><label for="monthly-macro-toggle" class="font-bold text-sm dark:text-white cursor-pointer select-none">Raggruppa per Macro Categorie</label></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${leftHtml}</div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${rightHtml}</div></div>`;
+                c.innerHTML = `<div class="mb-6 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border"><input type="checkbox" id="monthly-macro-toggle" class="w-5 h-5 text-blue-600 rounded" ${useMacro?'checked':''} onchange="App.monthlyViewMode=this.checked?'group':'category'; App.render()"><label for="monthly-macro-toggle" class="font-bold text-sm dark:text-white cursor-pointer select-none">Raggruppa per Macro Categorie</label></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="flex flex-col gap-4"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center"><h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3><div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border space-y-4">${renderList(incLabels, 'inc')}</div></div><div class="flex flex-col gap-4"><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center"><h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3><div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div></div><div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border space-y-4">${renderList(expLabels, 'exp')}</div></div></div>`;
                 setTimeout(() => { new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels: incLabels, datasets: [{ data: incData, backgroundColor: this.generateColors(incLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); new Chart(document.getElementById('chartPieExp'), { type: 'doughnut', data: { labels: expLabels, datasets: [{ data: expData, backgroundColor: this.generateColors(expLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }, 0);
             },
             renderTrendsTab(c) {
@@ -511,12 +521,24 @@
                 if (this.detailState.cats === null && Store.data.categories.length > 0) this.detailState.cats = Store.data.categories.map(c => c.id);
                 const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
                 const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
-                const getTypeStyle = (type, color) => this.detailState.types.includes(type) ? `background-color: ${color}; color: white; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);` : `background-color: #f3f4f6; color: #9ca3af; border: none; opacity: 0.7;`;
-                const getCatStyle = (id) => this.detailState.cats.includes(id) ? `background-color: #2563eb; color: white; border: none;` : `background-color: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb;`;
+                
+                // VISUAL LOGIC FIX: Direct Style Injection
+                const getTypeStyle = (type, color) => this.detailState.types.includes(type) 
+                    ? `background-color: ${color}; color: white; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);` 
+                    : `background-color: #f3f4f6; color: #9ca3af; border: none; opacity: 0.7;`;
+                
+                const getCatStyle = (id) => this.detailState.cats.includes(id)
+                    ? `background-color: #2563eb; color: white; border: none;`
+                    : `background-color: #f3f4f6; color: #9ca3af; border: 1px solid #e5e7eb;`;
+
                 container.innerHTML = `
                     <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
                         <div class="flex gap-2 mb-4"><input type="date" id="detail-start" value="${this.detailState.start}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"><input type="date" id="detail-end" value="${this.detailState.end}" class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600" onchange="App.updateDetailView()"></div>
-                        <div class="flex flex-wrap gap-2 mb-4"><button onclick="App.toggleDetailType('expense')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('expense', '#ef4444')}">Uscite</button><button onclick="App.toggleDetailType('income')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('income', '#10b981')}">Entrate</button><button onclick="App.toggleDetailType('transfer')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('transfer', '#8b5cf6')}">Fondi</button></div>
+                        <div class="flex flex-wrap gap-2 mb-4">
+                            <button onclick="App.toggleDetailType('expense')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('expense', '#ef4444')}">Uscite</button>
+                            <button onclick="App.toggleDetailType('income')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('income', '#10b981')}">Entrate</button>
+                            <button onclick="App.toggleDetailType('transfer')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all" style="${getTypeStyle('transfer', '#8b5cf6')}">Fondi</button>
+                        </div>
                         <div class="border-t dark:border-gray-700 pt-4"><div class="flex justify-between items-center mb-2"><span class="text-xs font-bold uppercase text-gray-500">Categorie</span><div class="flex gap-2"><button onclick="App.toggleDetailCatsAll(true)" class="text-xs font-bold text-blue-500 hover:underline">Tutte</button><button onclick="App.toggleDetailCatsAll(false)" class="text-xs text-gray-400 hover:underline">Nessuna</button></div></div><div class="max-h-40 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2">${Store.data.categories.map(c => `<button onclick="App.toggleDetailCat('${c.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all truncate text-center" style="${getCatStyle(c.id)}">${c.name}</button>`).join('')}</div></div>
                     </div>
                     <div class="bg-white dark:bg-dark-card p-4 rounded-xl mb-4 text-center font-bold text-xl ${tot>=0?'text-green-500':'text-red-500'} shadow-sm border dark:border-dark-border">Totale Periodo: € ${tot.toLocaleString()}</div>
