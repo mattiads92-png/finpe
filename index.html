@@ -145,10 +145,20 @@
     </div>
 
     <div id="modal-day" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-        <div class="bg-white dark:bg-dark-card w-full max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-transform transform translate-y-full sm:translate-y-0" id="day-modal-content">
-            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800"><div><h3 class="font-bold text-xl" id="day-modal-date">Data</h3><p class="text-xs text-gray-500" id="day-modal-summary">Riepilogo</p></div><button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button></div>
-            <div class="p-4 border-b dark:border-dark-border bg-gray-50 dark:bg-gray-800/50"><button id="btn-day-add" class="w-full py-3 bg-primary-600 text-white font-bold rounded-xl shadow-md hover:bg-primary-700 transition flex items-center justify-center gap-2"><i class="fas fa-plus"></i> Aggiungi Transazione qui</button></div>
-            <div id="day-list" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+        <div class="bg-white dark:bg-dark-card w-full max-w-lg sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] transition-transform transform translate-y-full sm:translate-y-0 duration-300" id="day-modal-content">
+            <div class="p-4 border-b dark:border-dark-border flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+                <div>
+                    <h3 class="font-bold text-xl dark:text-white" id="day-modal-date">Data</h3>
+                    <p class="text-xs text-gray-500 mt-1" id="day-modal-summary">Riepilogo</p>
+                </div>
+                <button class="modal-close w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 border-b dark:border-dark-border bg-gray-50 dark:bg-gray-800/50">
+                <button id="btn-day-add" class="w-full py-3 bg-primary-600 text-white font-bold rounded-xl shadow-md hover:bg-primary-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-plus"></i> Aggiungi Transazione qui
+                </button>
+            </div>
+            <div id="day-list" class="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-dark-card"></div>
         </div>
     </div>
 
@@ -226,11 +236,14 @@
                 App.toggleLoader(true, "Sincronizzazione...");
                 this.unsubTrans = db.collection('users').doc(this.user.uid).collection('transactions').onSnapshot(snapshot => {
                     this.data.transactions = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()})).sort((a, b) => new Date(b.date) - new Date(a.date));
+                    
+                    // REFRESH DAY MODAL IF OPEN
                     const modalContent = document.getElementById('day-modal-content');
                     const modal = document.getElementById('modal-day');
                     if (modalContent.dataset.currentDate && !modal.classList.contains('hidden')) {
                         App.openDayModal(modalContent.dataset.currentDate, this.data.transactions.filter(t => t.date === modalContent.dataset.currentDate));
                     }
+                    
                     if(this.data.categories.length > 0 || snapshot.empty) App.toggleLoader(false);
                     App.render();
                 }, error => { App.toggleLoader(false); });
@@ -433,6 +446,7 @@
                     const colorClass = dayNet >= 0 ? (hasPlanned ? 'text-green-400' : 'text-green-600') : (hasPlanned ? 'text-red-400' : 'text-red-600');
                     const cell = document.createElement('div');
                     cell.className = `calendar-day bg-white dark:bg-dark-card rounded-xl p-1 border border-transparent hover:border-primary-400 cursor-pointer flex flex-col justify-between shadow-sm relative`;
+                    // QUI VIENE CHIAMATA LA FUNZIONE OPEN DAY MODAL
                     cell.onclick = () => this.openDayModal(dateStr, dTrans);
                     cell.innerHTML = `<div class="relative h-full flex flex-col"><span class="text-sm sm:text-base font-bold dark:text-gray-300 ml-1 mt-1">${i}</span>${dTrans.length > 0 ? `<div class="mt-auto text-right"><div class="text-xs sm:text-sm font-extrabold ${colorClass}">${dayNet>0?'+':''}€${Math.round(dayNet)}</div></div>` : ''}${hasPlanned ? `<div class="absolute bottom-1 left-1 w-2 h-2 bg-yellow-400 rounded-full shadow-sm"></div>` : ''}</div>`;
                     grid.appendChild(cell);
@@ -485,7 +499,6 @@
                 const expLabels = allLabels.filter(k => dataMap[k].exp > 0).sort((a,b) => dataMap[b].exp - dataMap[a].exp);
                 const expData = expLabels.map(k => dataMap[k].exp);
 
-                // --- BUILD LEFT COLUMN (INCOME) ---
                 let leftHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3><div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div></div><div class="space-y-4">`;
                 incLabels.forEach(k => {
                     const d = dataMap[k];
@@ -499,7 +512,6 @@
                 });
                 leftHtml += `</div>`;
 
-                // --- BUILD RIGHT COLUMN (EXPENSE) ---
                 let rightHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3><div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div></div><div class="space-y-4">`;
                 expLabels.forEach(k => {
                     const d = dataMap[k];
@@ -530,36 +542,26 @@
                 }, 0);
             },
             renderTrendsTab(c) {
-                // Initialize default selections if needed
                 if(!this.selectedTrendCat && Store.data.categories.length) this.selectedTrendCat = Store.data.categories[0].id;
-                // Get Unique Groups
                 const groups = [...new Set(Store.data.categories.map(c => c.group).filter(g => g))].sort();
                 if(!this.selectedTrendGroup && groups.length) this.selectedTrendGroup = groups[0];
 
                 const cat = Store.data.categories.find(x => x.id === this.selectedTrendCat);
-                
-                // Prepare Data Arrays
                 const labels = [];
                 const catData = {};
                 const groupData = {};
                 const monthlyAvg = {}; 
                 const topMonths = {};
 
-                // Build Time Series
                 Store.data.transactions.filter(t => t.status === 'done').sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
                     const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear();
                     if (!labels.includes(k)) labels.push(k);
-                    
-                    // Cat Data
                     if (this.selectedTrendCat && t.category === this.selectedTrendCat) {
                         catData[k] = (catData[k] || 0) + t.amount;
-                        // Stats for Cat only
                         if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() };
                         monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
                         if(!topMonths[y]) topMonths[y] = [];
                     }
-
-                    // Group Data
                     if (this.selectedTrendGroup) {
                         const tCat = Store.data.categories.find(c => c.id === t.category);
                         if (tCat && tCat.group === this.selectedTrendGroup) {
@@ -568,7 +570,6 @@
                     }
                 });
 
-                // Top Months Calculation (Based on Category if selected, else Group)
                 const sourceData = this.selectedTrendCat ? catData : groupData;
                 Object.keys(sourceData).forEach(ym => {
                     const [y, m] = ym.split('-'); const val = sourceData[ym];
@@ -645,7 +646,6 @@
                     if(target) { if(!target[groupName]) target[groupName] = { val: 0, subs: {} }; target[groupName].val += t.amount; const subName = cat ? cat.name : 'Sconosciuto'; if(!target[groupName].subs[subName]) target[groupName].subs[subName] = 0; target[groupName].subs[subName] += t.amount; }
                 });
                 
-                // Helper to render accordion lists
                 const renderList = (groups, colorClass) => {
                     return Object.keys(groups).sort((a,b)=>groups[b].val - groups[a].val).map(g => {
                         const data = groups[g];
@@ -680,7 +680,6 @@
                 const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
                 const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
                 
-                // --- VISUAL LOGIC FOR PILL BUTTONS (Direct JS Style Injection) ---
                 const getTypeStyle = (type, color) => this.detailState.types.includes(type) 
                     ? `background-color: ${color}; color: white; border: none; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);` 
                     : `background-color: #f3f4f6; color: #9ca3af; border: none; opacity: 0.7;`;
@@ -765,6 +764,61 @@
                 document.getElementById('t-repeat').checked = false; document.getElementById('repeat-options').classList.add('hidden'); document.getElementById('repeat-section').classList.toggle('hidden', !!t);
                 document.getElementById('btn-delete-trans').classList.toggle('hidden', !t); document.getElementById('btn-copy-trans').classList.toggle('hidden', !t);
             },
+            
+            // QUESTA E' LA FUNZIONE NUOVA IMPLEMENTATA
+            openDayModal(dateStr, transactions) {
+                const m = document.getElementById('modal-day');
+                const c = document.getElementById('day-modal-content');
+                
+                // Set dataset date for updates
+                c.dataset.currentDate = dateStr;
+
+                const dateObj = new Date(dateStr);
+                document.getElementById('day-modal-date').textContent = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+                const total = transactions.reduce((acc, t) => { if(t.type === 'income') return acc + t.amount; return acc - t.amount; }, 0);
+                const plannedCount = transactions.filter(t => t.status === 'planned').length;
+                document.getElementById('day-modal-summary').innerHTML = `Totale: <span class="${total >= 0 ? 'text-green-600' : 'text-red-600'} font-bold">€ ${total.toLocaleString()}</span> ${plannedCount > 0 ? `• <span class="text-yellow-600">${plannedCount} in attesa</span>` : ''}`;
+
+                const list = document.getElementById('day-list');
+                if (transactions.length === 0) {
+                    list.innerHTML = `<div class="text-center text-gray-400 py-10">Nessuna transazione.</div>`;
+                } else {
+                    list.innerHTML = transactions.map(t => {
+                        const isDone = t.status === 'done';
+                        const color = t.type === 'income' ? 'text-green-600' : (t.type === 'transfer' ? 'text-purple-600' : 'text-red-600');
+                        const catName = Store.data.categories.find(c => c.id === t.category)?.name || '???';
+                        return `
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded-xl border border-gray-100 dark:border-gray-700 flex justify-between items-center group">
+                            <div class="flex items-center gap-3 overflow-hidden cursor-pointer flex-1" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)">
+                                <div class="w-2 h-10 rounded-full ${t.type==='income'?'bg-green-500':(t.type==='transfer'?'bg-purple-500':'bg-red-500')}"></div>
+                                <div class="truncate">
+                                    <div class="font-bold text-gray-700 dark:text-gray-200 truncate">${t.description || 'Senza descrizione'}</div>
+                                    <div class="text-xs text-gray-400 font-bold uppercase">${catName}</div>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-end gap-1 ml-2">
+                                <div class="font-black text-lg ${color}">€ ${t.amount.toLocaleString()}</div>
+                                <button onclick="App.toggleStatus('${t.id}')" class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider transition ${isDone ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'}">
+                                    ${isDone ? '<i class="fas fa-check"></i> Pagato' : '<i class="fas fa-clock"></i> Previsto'}
+                                </button>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Handle Add Button
+                document.getElementById('btn-day-add').onclick = () => {
+                    this.closeModals();
+                    setTimeout(() => this.openTransModal(null, dateStr), 200);
+                };
+
+                m.classList.remove('hidden');
+                requestAnimationFrame(() => {
+                    c.classList.remove('translate-y-full');
+                });
+            },
+
             openCatModal(id = null, type = 'expense') {
                 const m = document.getElementById('modal-category'), c = document.getElementById('cat-modal-content');
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
