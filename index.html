@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 2.5 Analytics</title>
+    <title>FinPe 2.6 Analytics Fix</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -66,7 +66,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.5 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.6 Cloud</span>
                 </div>
             </div>
             
@@ -469,9 +469,14 @@
                     dataMap[key].exp += t.amount;
                 });
 
-                const labels = Object.keys(dataMap);
-                const incData = labels.map(k => dataMap[k].inc);
-                const expData = labels.map(k => dataMap[k].exp);
+                const allLabels = Object.keys(dataMap);
+                
+                // FIX: Separate labels for Income and Expenses
+                const incLabels = allLabels.filter(k => dataMap[k].inc > 0);
+                const incData = incLabels.map(k => dataMap[k].inc);
+                
+                const expLabels = allLabels.filter(k => dataMap[k].exp > 0);
+                const expData = expLabels.map(k => dataMap[k].exp);
 
                 let html = `
                     <div class="mb-4 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border">
@@ -493,24 +498,20 @@
                         <div class="space-y-4">
                 `;
 
-                labels.sort((a,b) => dataMap[b].exp - dataMap[a].exp).forEach(k => {
+                allLabels.sort((a,b) => dataMap[b].exp - dataMap[a].exp).forEach(k => {
                     const d = dataMap[k];
                     if (d.exp === 0 && d.inc === 0 && d.budget === 0) return; // Skip empty
                     
-                    // Budget Bar Logic
                     let barColor = 'bg-blue-500'; 
                     let pct = 0;
-                    
                     if (d.budget > 0) {
                         pct = (d.exp / d.budget) * 100;
                         barColor = d.exp > d.budget ? 'bg-red-500' : 'bg-green-500';
                     } else {
-                        barColor = 'bg-blue-500'; // No Budget set
-                        pct = 100; // Full bar for visibility if spent > 0
+                        barColor = 'bg-blue-500'; 
+                        pct = 100; 
                         if (d.exp === 0) pct = 0;
                     }
-                    
-                    // Visual Cap at 100% for the bar width, but show real pct in text
                     const width = Math.min(pct, 100);
 
                     html += `
@@ -533,8 +534,8 @@
                 c.innerHTML = html;
 
                 setTimeout(() => {
-                    new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels, datasets: [{ data: incData, backgroundColor: this.generateColors(labels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
-                    new Chart(document.getElementById('chartPieExp'), { type: 'doughnut', data: { labels, datasets: [{ data: expData, backgroundColor: this.generateColors(labels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                    new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels: incLabels, datasets: [{ data: incData, backgroundColor: this.generateColors(incLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+                    new Chart(document.getElementById('chartPieExp'), { type: 'doughnut', data: { labels: expLabels, datasets: [{ data: expData, backgroundColor: this.generateColors(expLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
                 }, 0);
             },
             renderTrendsTab(c) {
@@ -717,28 +718,6 @@
                 document.getElementById('forecast-total').textContent = `€ ${items.reduce((a,t)=>a+t.amount,0).toLocaleString('it-IT',{minimumFractionDigits:2})}`;
                 list.innerHTML = items.length ? items.map(t => `<div class="grid grid-cols-[auto_2fr_1fr_auto] gap-4 items-center p-3 border-b dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition cursor-pointer text-sm" onclick="App.closeModals(); setTimeout(()=>App.openTransModal(Store.data.transactions.find(x=>x.id==='${t.id}')), 200)"><div class="font-bold text-gray-400 text-xs">${new Date(t.date).getDate()}/${new Date(t.date).getMonth()+1}</div><div class="font-medium text-gray-800 dark:text-gray-200 truncate">${t.description}</div><div class="hidden sm:block text-xs text-gray-500 uppercase font-bold truncate bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-center">${Store.data.categories.find(c=>c.id===t.category)?.name||'???'}</div><div class="font-bold ${type==='income'?'text-green-600':'text-red-600'} text-right whitespace-nowrap">€ ${t.amount.toLocaleString()}</div></div>`).join('') : '<div class="text-center text-gray-400 py-8">Nessuna previsione.</div>';
                 m.classList.remove('hidden'); requestAnimationFrame(() => { c.classList.remove('scale-95', 'opacity-0'); c.classList.add('scale-100', 'opacity-100'); });
-            },
-            openDayModal(dateStr, transactions) {
-                const modal = document.getElementById('modal-day');
-                const content = document.getElementById('day-modal-content'); const list = document.getElementById('day-list');
-                content.dataset.currentDate = dateStr;
-                modal.classList.remove('hidden'); requestAnimationFrame(() => { content.classList.remove('translate-y-full'); content.classList.add('translate-y-0'); });
-                document.getElementById('day-modal-date').textContent = new Date(dateStr).toLocaleDateString('it-IT', {weekday:'long', day:'numeric', month:'long'});
-                document.getElementById('day-modal-summary').textContent = transactions.length ? `${transactions.length} movimenti` : 'Nessuna operazione';
-                document.getElementById('btn-day-add').onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(null, dateStr), 200); };
-                list.innerHTML = transactions.length === 0 ? `<div class="text-center text-gray-400 py-8">Nessun movimento</div>` : '';
-                transactions.forEach(t => {
-                    const cat = Store.data.categories.find(c => c.id === t.category)?.name || '???';
-                    const div = document.createElement('div');
-                    div.className = `flex justify-between items-center p-3 rounded-xl border dark:border-dark-border ${t.status==='planned'?'bg-gray-50 dark:bg-gray-800 border-dashed':'bg-white dark:bg-dark-card'}`;
-                    div.onclick = () => { this.closeModals(); setTimeout(() => this.openTransModal(t), 200); };
-                    let colorClass = '';
-                    if (t.type === 'income') colorClass = t.status === 'planned' ? 'text-green-400' : 'text-green-600';
-                    else if (t.type === 'expense') colorClass = t.status === 'planned' ? 'text-red-400' : 'text-red-600';
-                    else colorClass = t.status === 'planned' ? 'text-purple-400' : 'text-purple-600';
-                    div.innerHTML = `<div class="flex items-center gap-3 flex-1"><div class="flex-1"><div class="font-bold text-sm dark:text-gray-200">${cat}</div><div class="text-xs text-gray-500">${t.description || ''}</div></div></div><div class="flex items-center gap-4"><div class="font-bold ${colorClass} whitespace-nowrap text-sm">${t.type==='income'?'+':(t.type==='transfer'&&t.amount<0?'+':'-')} € ${Math.abs(t.amount).toLocaleString()}</div><button onclick="event.stopPropagation(); App.toggleStatus('${t.id}')" class="relative inline-flex items-center h-6 rounded-full w-11 transition-colors ${t.status==='done'?'bg-green-500':'bg-gray-300 dark:bg-gray-600'}"><span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${t.status==='done'?'translate-x-6':'translate-x-1'}"/></button></div>`;
-                    list.appendChild(div);
-                });
             },
             generateColors(count) { return Array.from({length: count}, (_, i) => ['#ef4444', '#f97316', '#f59e0b', '#84cc16', '#10b981', '#06b6d4', '#3b82f6', '#8b5cf6', '#d946ef', '#f43f5e'][i % 10]); },
             showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.remove('opacity-0', 'translate-y-[-20px]'); t.classList.add('opacity-100', 'translate-y-0'); setTimeout(() => { t.classList.remove('opacity-100', 'translate-y-0'); t.classList.add('opacity-0', 'translate-y-[-20px]'); }, 3000); }
