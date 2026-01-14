@@ -66,7 +66,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.0 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">3.1 Cloud</span>
                 </div>
             </div>
             
@@ -358,9 +358,22 @@
             async toggleStatus(id) { const t = Store.data.transactions.find(x => x.id === id); if(t) { await Store.updateTrans({...t, status: t.status === 'done' ? 'planned' : 'done'}); } },
             updateDetailView() {
                 this.detailState.start = document.getElementById('detail-start').value; this.detailState.end = document.getElementById('detail-end').value;
-                this.detailState.types = Array.from(document.querySelectorAll('.detail-type-cb:checked')).map(cb => cb.value);
-                this.detailState.cats = Array.from(document.querySelectorAll('.detail-cat-cb:checked')).map(cb => cb.value);
                 this.renderDetailTab(document.getElementById('analysis-content'));
+            },
+            toggleDetailType(type) {
+                if(this.detailState.types.includes(type)) this.detailState.types = this.detailState.types.filter(t=>t!==type);
+                else this.detailState.types.push(type);
+                this.updateDetailView();
+            },
+            toggleDetailCat(id) {
+                if(this.detailState.cats === null) this.detailState.cats = [];
+                if(this.detailState.cats.includes(id)) this.detailState.cats = this.detailState.cats.filter(c=>c!==id);
+                else this.detailState.cats.push(id);
+                this.updateDetailView();
+            },
+            toggleDetailCatsAll(on) {
+                this.detailState.cats = on ? Store.data.categories.map(c=>c.id) : [];
+                this.updateDetailView();
             },
             render() {
                 const c = document.getElementById('view-container'); c.innerHTML = '';
@@ -472,67 +485,44 @@
                 const expLabels = allLabels.filter(k => dataMap[k].exp > 0);
                 const expData = expLabels.map(k => dataMap[k].exp);
 
-                let html = `
-                    <div class="mb-4 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border">
+                // --- BUILD LEFT COLUMN (INCOME) ---
+                let leftHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3><div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div></div><div class="space-y-4">`;
+                incLabels.sort((a,b) => dataMap[b].inc - dataMap[a].inc).forEach(k => {
+                    const d = dataMap[k];
+                    let barColor = 'bg-blue-500'; let pct = 0;
+                    if (d.budget > 0) {
+                        pct = (d.inc / d.budget) * 100;
+                        barColor = d.inc < d.budget ? 'bg-yellow-500' : 'bg-green-500';
+                    } else { pct = 100; barColor = 'bg-blue-500'; }
+                    const width = Math.min(pct, 100);
+                    leftHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.inc.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`;
+                });
+                leftHtml += `</div>`;
+
+                // --- BUILD RIGHT COLUMN (EXPENSE) ---
+                let rightHtml = `<div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center mb-4"><h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3><div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div></div><div class="space-y-4">`;
+                expLabels.sort((a,b) => dataMap[b].exp - dataMap[a].exp).forEach(k => {
+                    const d = dataMap[k];
+                    let barColor = 'bg-blue-500'; let pct = 0;
+                    if (d.budget > 0) {
+                        pct = (d.exp / d.budget) * 100;
+                        barColor = d.exp > d.budget ? 'bg-red-500' : 'bg-green-500';
+                    } else { pct = 100; barColor = 'bg-blue-500'; }
+                    const width = Math.min(pct, 100);
+                    rightHtml += `<div><div class="flex justify-between items-end mb-1"><span class="text-sm font-bold dark:text-gray-200">${k}</span><div class="text-right"><span class="block font-bold text-sm dark:text-white">€${d.exp.toLocaleString()}</span><span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span></div></div><div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden"><div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div></div></div>`;
+                });
+                rightHtml += `</div>`;
+
+                c.innerHTML = `
+                    <div class="mb-6 flex items-center gap-3 bg-white dark:bg-dark-card p-3 rounded-xl shadow-sm border dark:border-dark-border">
                         <input type="checkbox" id="monthly-macro-toggle" class="w-5 h-5 text-blue-600 rounded" ${useMacro?'checked':''} onchange="App.monthlyViewMode=this.checked?'group':'category'; App.render()">
                         <label for="monthly-macro-toggle" class="font-bold text-sm dark:text-white cursor-pointer select-none">Raggruppa per Macro Categorie</label>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center">
-                            <h3 class="font-bold mb-2 text-xs uppercase text-green-600">Entrate</h3>
-                            <div class="w-40 h-40 relative"><canvas id="chartPieInc"></canvas></div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border flex flex-col items-center">
-                            <h3 class="font-bold mb-2 text-xs uppercase text-red-600">Uscite</h3>
-                            <div class="w-40 h-40 relative"><canvas id="chartPieExp"></canvas></div>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${leftHtml}</div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">${rightHtml}</div>
                     </div>
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border overflow-y-auto">
-                        <h3 class="font-bold mb-4 dark:text-white text-sm">Dettaglio Budget ${useMacro ? '(Macro)' : '(Categorie)'}</h3>
-                        <div class="space-y-4">
                 `;
-
-                allLabels.sort((a,b) => (dataMap[b].exp + dataMap[b].inc) - (dataMap[a].exp + dataMap[a].inc)).forEach(k => {
-                    const d = dataMap[k];
-                    if (d.exp === 0 && d.inc === 0 && d.budget === 0) return; 
-                    
-                    const isIncomeType = d.inc > d.exp;
-                    const val = isIncomeType ? d.inc : d.exp;
-                    let barColor = 'bg-blue-500'; 
-                    let pct = 0;
-
-                    if (d.budget > 0) {
-                        pct = (val / d.budget) * 100;
-                        if (isIncomeType) {
-                            barColor = val < d.budget ? 'bg-yellow-500' : 'bg-green-500'; // Yellow if below budget (bad), Green if above (good)
-                        } else {
-                            barColor = val > d.budget ? 'bg-red-500' : 'bg-green-500'; // Red if above budget (bad), Green if below (good)
-                        }
-                    } else {
-                        barColor = 'bg-blue-500'; 
-                        pct = 100; 
-                        if (val === 0) pct = 0;
-                    }
-                    const width = Math.min(pct, 100);
-
-                    html += `
-                        <div>
-                            <div class="flex justify-between items-end mb-1">
-                                <span class="text-sm font-bold dark:text-gray-200">${k}</span>
-                                <div class="text-right">
-                                    <span class="block font-bold text-sm dark:text-white">€${val.toLocaleString()}</span>
-                                    <span class="text-[10px] text-gray-400">su €${d.budget.toLocaleString()}</span>
-                                </div>
-                            </div>
-                            <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                                <div class="${barColor} h-2 rounded-full transition-all duration-500" style="width: ${width}%"></div>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                html += `</div></div>`;
-                c.innerHTML = html;
 
                 setTimeout(() => {
                     new Chart(document.getElementById('chartPieInc'), { type: 'doughnut', data: { labels: incLabels, datasets: [{ data: incData, backgroundColor: this.generateColors(incLabels.length) }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
@@ -540,111 +530,43 @@
                 }, 0);
             },
             renderTrendsTab(c) {
-                // Initialize default selections if needed
                 if(!this.selectedTrendCat && Store.data.categories.length) this.selectedTrendCat = Store.data.categories[0].id;
-                // Get Unique Groups
                 const groups = [...new Set(Store.data.categories.map(c => c.group).filter(g => g))].sort();
                 if(!this.selectedTrendGroup && groups.length) this.selectedTrendGroup = groups[0];
-
                 const cat = Store.data.categories.find(x => x.id === this.selectedTrendCat);
-                
-                // Prepare Data Arrays
-                const labels = [];
-                const catData = {};
-                const groupData = {};
-                const monthlyAvg = {}; 
-                const topMonths = {};
-
-                // Build Time Series
+                const labels = []; const catData = {}; const groupData = {}; const monthlyAvg = {};  const topMonths = {};
                 Store.data.transactions.filter(t => t.status === 'done').sort((a,b) => new Date(a.date) - new Date(b.date)).forEach(t => {
                     const d = new Date(t.date); const k = d.toISOString().slice(0,7); const y = d.getFullYear();
                     if (!labels.includes(k)) labels.push(k);
-                    
-                    // Cat Data
                     if (this.selectedTrendCat && t.category === this.selectedTrendCat) {
                         catData[k] = (catData[k] || 0) + t.amount;
-                        // Stats for Cat only
-                        if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() };
-                        monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
+                        if(!monthlyAvg[y]) monthlyAvg[y] = { tot:0, count:0, months: new Set() }; monthlyAvg[y].tot += t.amount; monthlyAvg[y].months.add(d.getMonth());
                         if(!topMonths[y]) topMonths[y] = [];
                     }
-
-                    // Group Data
                     if (this.selectedTrendGroup) {
                         const tCat = Store.data.categories.find(c => c.id === t.category);
-                        if (tCat && tCat.group === this.selectedTrendGroup) {
-                            groupData[k] = (groupData[k] || 0) + t.amount;
-                        }
+                        if (tCat && tCat.group === this.selectedTrendGroup) groupData[k] = (groupData[k] || 0) + t.amount;
                     }
                 });
-
-                // Top Months Calculation (Based on Category if selected, else Group)
                 const sourceData = this.selectedTrendCat ? catData : groupData;
-                Object.keys(sourceData).forEach(ym => {
-                    const [y, m] = ym.split('-'); const val = sourceData[ym];
-                    if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val});
-                });
+                Object.keys(sourceData).forEach(ym => { const [y, m] = ym.split('-'); const val = sourceData[ym]; if(topMonths[y]) topMonths[y].push({m: parseInt(m), v: val}); });
                 Object.keys(topMonths).forEach(y => { topMonths[y].sort((a,b) => b.v - a.v); topMonths[y] = topMonths[y].slice(0,3); });
-
-                let html = `
+                c.innerHTML = `
                     <div class="grid grid-cols-2 gap-4 mb-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label>
-                            <select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendCat=this.value; App.render()">
-                                <option value="">Nessuna</option>
-                                ${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Macro Gruppo</label>
-                            <select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendGroup=this.value; App.render()">
-                                <option value="">Nessuno</option>
-                                ${groups.map(g => `<option value="${g}" ${g===this.selectedTrendGroup?'selected':''}>${g}</option>`).join('')}
-                            </select>
-                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Categoria</label><select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendCat=this.value; App.render()"><option value="">Nessuna</option>${Store.data.categories.map(cc => `<option value="${cc.id}" ${cc.id===this.selectedTrendCat?'selected':''}>${cc.name}</option>`).join('')}</select></div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><label class="block text-xs font-bold text-gray-500 uppercase mb-1">Macro Gruppo</label><select class="w-full p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm" onchange="App.selectedTrendGroup=this.value; App.render()"><option value="">Nessuno</option>${groups.map(g => `<option value="${g}" ${g===this.selectedTrendGroup?'selected':''}>${g}</option>`).join('')}</select></div>
                     </div>
-
-                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
-                        <h3 class="font-bold mb-4 dark:text-white text-sm">Confronto Andamento</h3>
-                        <div class="h-64 relative"><canvas id="chartTrendCompare"></canvas></div>
-                    </div>
-
+                    <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6"><h3 class="font-bold mb-4 dark:text-white text-sm">Confronto Andamento</h3><div class="h-64 relative"><canvas id="chartTrendCompare"></canvas></div></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile (Categoria Selezionata)</h3>
-                            <div class="space-y-2">
-                                ${Object.keys(monthlyAvg).length ? Object.keys(monthlyAvg).sort().reverse().map(y => {
-                                    const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1);
-                                    return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`;
-                                }).join('') : '<div class="text-xs text-gray-400">Seleziona una categoria per vedere le medie.</div>'}
-                            </div>
-                        </div>
-                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border">
-                            <h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3>
-                            <div class="space-y-4">
-                                ${Object.keys(topMonths).length ? Object.keys(topMonths).sort().reverse().map(y => {
-                                    return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`;
-                                }).join('') : '<div class="text-xs text-gray-400">Dati insufficienti.</div>'}
-                            </div>
-                        </div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Media Mensile (Categoria)</h3><div class="space-y-2">${Object.keys(monthlyAvg).length ? Object.keys(monthlyAvg).sort().reverse().map(y => { const avg = monthlyAvg[y].tot / (monthlyAvg[y].months.size || 1); return `<div class="flex justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded"><span class="font-bold text-gray-600 dark:text-gray-300">${y}</span><span class="font-bold dark:text-white">€ ${avg.toFixed(0)}</span></div>`; }).join('') : '<div class="text-xs text-gray-400">Seleziona una categoria per vedere le medie.</div>'}</div></div>
+                        <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border"><h3 class="font-bold mb-3 dark:text-white text-sm">Top 3 Mesi (Picchi)</h3><div class="space-y-4">${Object.keys(topMonths).length ? Object.keys(topMonths).sort().reverse().map(y => { return `<div><div class="text-xs font-bold text-gray-400 mb-1">${y}</div><div class="flex gap-2">${topMonths[y].map(x => `<span class="px-2 py-1 bg-red-50 dark:bg-red-900/20 text-red-600 text-xs rounded font-bold">${x.m}/12: €${x.v.toLocaleString()}</span>`).join('')}</div></div>`; }).join('') : '<div class="text-xs text-gray-400">Dati insufficienti.</div>'}</div></div>
                     </div>
                 `;
-                c.innerHTML = html;
-
                 setTimeout(() => {
                     const ds = [];
-                    if (this.selectedTrendCat) {
-                        ds.push({ label: 'Categoria', data: labels.map(k => catData[k]||0), borderColor: '#3b82f6', tension: 0.3, fill: false });
-                    }
-                    if (this.selectedTrendGroup) {
-                        ds.push({ label: 'Macro Gruppo', data: labels.map(k => groupData[k]||0), borderColor: '#a855f7', tension: 0.3, borderDash: [5,5], fill: false });
-                    }
-
-                    new Chart(document.getElementById('chartTrendCompare'), {
-                        type: 'line',
-                        data: { labels: labels, datasets: ds },
-                        options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } }
-                    });
+                    if (this.selectedTrendCat) ds.push({ label: 'Categoria', data: labels.map(k => catData[k]||0), borderColor: '#3b82f6', tension: 0.3, fill: false });
+                    if (this.selectedTrendGroup) ds.push({ label: 'Macro Gruppo', data: labels.map(k => groupData[k]||0), borderColor: '#a855f7', tension: 0.3, borderDash: [5,5], fill: false });
+                    new Chart(document.getElementById('chartTrendCompare'), { type: 'line', data: { labels: labels, datasets: ds }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false } } } } });
                 }, 0);
             },
             renderAnnualTab(c, y) {
@@ -671,6 +593,11 @@
                 const filtered = Store.data.transactions.filter(t => t.status==='done' && t.date >= this.detailState.start && t.date <= this.detailState.end && this.detailState.types.includes(t.type) && (this.detailState.cats||[]).includes(t.category));
                 const tot = filtered.reduce((a,b)=>a+(b.type==='expense'? -b.amount : b.amount), 0);
                 
+                // --- VISUAL LOGIC FOR PILL BUTTONS ---
+                const getBtnClass = (isActive, color) => isActive 
+                    ? `bg-${color}-500 text-white shadow-${color}-200 shadow-md transform scale-105 border-transparent` 
+                    : `bg-gray-100 text-gray-400 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-600 border-transparent grayscale`;
+
                 container.innerHTML = `
                     <div class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border dark:border-dark-border mb-6">
                         <div class="flex gap-2 mb-4">
@@ -679,33 +606,27 @@
                         </div>
                         
                         <div class="flex flex-wrap gap-2 mb-4">
-                            <label class="cursor-pointer">
-                                <input type="checkbox" value="expense" class="peer hidden detail-type-cb" ${this.detailState.types.includes('expense')?'checked':''} onchange="App.updateDetailView()">
-                                <div class="px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm border border-transparent bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 peer-checked:bg-red-500 peer-checked:text-white peer-checked:shadow-red-200">Uscite</div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="checkbox" value="income" class="peer hidden detail-type-cb" ${this.detailState.types.includes('income')?'checked':''} onchange="App.updateDetailView()">
-                                <div class="px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm border border-transparent bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 peer-checked:bg-green-500 peer-checked:text-white peer-checked:shadow-green-200">Entrate</div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="checkbox" value="transfer" class="peer hidden detail-type-cb" ${this.detailState.types.includes('transfer')?'checked':''} onchange="App.updateDetailView()">
-                                <div class="px-4 py-2 rounded-xl font-bold text-sm transition-all shadow-sm border border-transparent bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500 peer-checked:bg-purple-500 peer-checked:text-white peer-checked:shadow-purple-200">Fondi</div>
-                            </label>
+                            <button onclick="App.toggleDetailType('expense')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all border ${getBtnClass(this.detailState.types.includes('expense'), 'red')}">Uscite</button>
+                            <button onclick="App.toggleDetailType('income')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all border ${getBtnClass(this.detailState.types.includes('income'), 'green')}">Entrate</button>
+                            <button onclick="App.toggleDetailType('transfer')" class="px-4 py-2 rounded-xl font-bold text-sm transition-all border ${getBtnClass(this.detailState.types.includes('transfer'), 'purple')}">Fondi</button>
                         </div>
 
                         <div class="border-t dark:border-gray-700 pt-4">
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-xs font-bold uppercase text-gray-500">Categorie</span>
-                                <button onclick="App.toggleDetailCats(true)" class="text-xs text-blue-500 hover:underline mr-2">Tutte</button>
-                                <button onclick="App.toggleDetailCats(false)" class="text-xs text-gray-400 hover:underline">Nessuna</button>
+                                <div class="flex gap-2">
+                                    <button onclick="App.toggleDetailCatsAll(true)" class="text-xs font-bold text-blue-500 hover:underline">Tutte</button>
+                                    <button onclick="App.toggleDetailCatsAll(false)" class="text-xs text-gray-400 hover:underline">Nessuna</button>
+                                </div>
                             </div>
                             <div class="max-h-40 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2">
-                                ${Store.data.categories.map(c => `
-                                    <label class="cursor-pointer block">
-                                        <input type="checkbox" class="peer hidden detail-cat-cb" value="${c.id}" ${this.detailState.cats.includes(c.id)?'checked':''} onchange="App.updateDetailView()">
-                                        <div class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border border-transparent bg-gray-50 text-gray-400 dark:bg-gray-800/50 dark:text-gray-500 peer-checked:bg-blue-500 peer-checked:text-white truncate text-center shadow-sm hover:opacity-80">${c.name}</div>
-                                    </label>
-                                `).join('')}
+                                ${Store.data.categories.map(c => {
+                                    const isActive = this.detailState.cats.includes(c.id);
+                                    const catClass = isActive 
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md' 
+                                        : 'bg-white text-gray-400 border-gray-200 dark:bg-gray-800 dark:text-gray-500 dark:border-gray-700 hover:border-gray-300';
+                                    return `<button onclick="App.toggleDetailCat('${c.id}')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition-all border truncate text-center ${catClass}">${c.name}</button>`;
+                                }).join('')}
                             </div>
                         </div>
                     </div>
