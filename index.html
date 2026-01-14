@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FinPe 2.1</title>
+    <title>FinPe 2.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -37,8 +38,9 @@
         .progress-fill { transition: width 0.5s ease-out; }
         #auth-overlay { transition: opacity 0.5s; }
         .macro-check { transform: scale(1.3); cursor: pointer; }
-        .glass-panel { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
         @keyframes spin { to { transform: rotate(360deg); } }
+        /* Fix per pulsanti su mobile */
+        .icon-btn { @apply w-9 h-9 rounded-full flex items-center justify-center transition hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-300; }
     </style>
 </head>
 <body class="bg-gray-50 text-slate-800 dark:bg-dark-bg dark:text-dark-text min-h-screen flex flex-col transition-colors duration-300 pb-24 md:pb-0">
@@ -61,7 +63,7 @@
                     <h1 class="font-black text-5xl tracking-tight text-slate-900 dark:text-white">
                         Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                     </h1>
-                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.1 Cloud</span>
+                    <span class="text-xs font-bold text-gray-400 tracking-[0.3em] uppercase block mt-1">2.2 Cloud</span>
                 </div>
             </div>
             
@@ -87,21 +89,22 @@
     </div>
 
     <header class="bg-white dark:bg-dark-card border-b dark:border-dark-border sticky top-0 z-40 shadow-sm safe-top">
-        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between"> <div class="flex items-center gap-3 group cursor-pointer" onclick="App.view='dashboard'; App.render();">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-2xl shadow-lg shadow-blue-500/20 transform transition group-hover:scale-105 group-hover:rotate-3">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3 group cursor-pointer" onclick="App.view='dashboard'; App.render();">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-500/20 transform transition group-hover:scale-105 group-hover:rotate-3">
                     F
                 </div>
-                <h1 class="font-black text-3xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
+                <h1 class="font-black text-2xl tracking-tight hidden sm:block text-slate-800 dark:text-white">
                     Fin<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Pe</span>
                 </h1>
             </div>
-            <div class="flex items-center gap-3">
-                <span id="user-email-display" class="text-xs text-gray-400 hidden sm:block"></span>
-                <button id="btn-logout" class="w-9 h-9 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500" title="Esci">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-                <button id="theme-toggle" class="w-9 h-9 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-yellow-500">
+            <div class="flex items-center gap-2">
+                <span id="user-email-display" class="text-xs text-gray-400 hidden sm:block mr-2"></span>
+                <button id="theme-toggle" class="icon-btn text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
                     <i class="fas fa-moon dark:hidden"></i><i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+                <button id="btn-logout" class="icon-btn text-red-500 bg-red-50 dark:bg-red-900/20" title="Esci">
+                    <i class="fas fa-sign-out-alt"></i>
                 </button>
             </div>
         </div>
@@ -970,26 +973,27 @@
                 const dayTrans = Store.data.transactions.filter(t => t.date.startsWith(`${y}-${String(m+1).padStart(2,'0')}`));
                 
                 c.innerHTML = `
-                    <div class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900 dark:from-slate-900 dark:to-slate-800 text-white p-6 rounded-3xl shadow-2xl mb-8">
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex items-center gap-3 bg-white dark:bg-dark-card rounded-full px-4 py-2 shadow-sm border border-gray-100 dark:border-gray-700">
+                            <button onclick="App.moveMonth(-1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-left"></i></button>
+                            <span class="text-sm font-bold capitalize text-slate-700 dark:text-gray-200 min-w-[100px] text-center">${new Intl.DateTimeFormat('it-IT', {month:'long'}).format(this.date)} ${y}</span>
+                            <button onclick="App.moveMonth(1)" class="text-gray-400 hover:text-primary-600 transition"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        
+                        <div class="flex items-center gap-2">
+                            <button onclick="App.exportCsv()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-green-600 hover:bg-gray-50 transition" title="Esporta CSV"><i class="fas fa-file-csv"></i></button>
+                            <input type="file" id="json-input" accept=".json" class="hidden" onchange="App.importJson(event)">
+                            <button onclick="document.getElementById('json-input').click()" class="w-10 h-10 bg-white dark:bg-dark-card rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-blue-600 hover:bg-gray-50 transition" title="Importa JSON"><i class="fas fa-file-import"></i></button>
+                        </div>
+                    </div>
+
+                    <div class="relative overflow-hidden bg-gradient-to-br from-indigo-900 via-blue-800 to-indigo-900 dark:from-slate-900 dark:to-slate-800 text-white p-6 rounded-3xl shadow-xl mb-8">
                         <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl pointer-events-none"></div>
                         <div class="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-blue-400 opacity-10 rounded-full blur-3xl pointer-events-none"></div>
                         
-                        <div class="relative z-10 flex justify-between items-start mb-8">
-                            <div>
-                                <span class="text-blue-200 text-xs font-bold uppercase tracking-widest">Saldo Attuale</span>
-                                <div class="text-5xl font-black mt-2 tracking-tight">€ ${proj.toLocaleString('it-IT', {minimumFractionDigits:2})}</div>
-                            </div>
-                            <div class="flex items-center glass-panel rounded-full px-1 py-1">
-                                <button onclick="App.moveMonth(-1)" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 transition"><i class="fas fa-chevron-left text-xs"></i></button>
-                                <span class="px-3 text-sm font-bold capitalize">${new Intl.DateTimeFormat('it-IT', {month:'long'}).format(this.date)} ${y}</span>
-                                <button onclick="App.moveMonth(1)" class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/20 transition"><i class="fas fa-chevron-right text-xs"></i></button>
-                            </div>
-                        </div>
-
-                        <div class="relative z-10 flex items-center gap-3">
-                            <button onclick="App.exportCsv()" class="glass-panel px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-white/20 transition"><i class="fas fa-file-csv"></i> CSV</button>
-                            <input type="file" id="json-input" accept=".json" class="hidden" onchange="App.importJson(event)">
-                            <button onclick="document.getElementById('json-input').click()" class="glass-panel px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-white/20 transition"><i class="fas fa-file-import"></i> JSON</button>
+                        <div class="relative z-10 text-center">
+                            <span class="text-blue-200 text-xs font-bold uppercase tracking-widest block mb-2">Saldo Attuale</span>
+                            <div class="text-3xl sm:text-5xl font-black tracking-tight break-words">€ ${proj.toLocaleString('it-IT', {minimumFractionDigits:2})}</div>
                         </div>
                     </div>
 
