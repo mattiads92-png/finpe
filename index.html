@@ -5,49 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FinPe Light</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <style>
-        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Outfit', sans-serif; -webkit-tap-highlight-color: transparent; background-color: #f8fafc; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 h-screen flex flex-col items-center justify-center">
+<body class="text-slate-800 h-screen flex flex-col items-center justify-center overflow-hidden">
 
-    <div id="auth-screen" class="w-full max-w-sm px-6 flex flex-col items-center text-center">
-        <img src="logo.jpg" alt="FinPe Light Logo" class="w-24 h-24 rounded-2xl shadow-lg mb-6 object-cover bg-white" onerror="this.src='https://via.placeholder.com/100?text=F';">
+    <div id="auth-screen" class="w-full max-w-sm px-6 flex flex-col items-center text-center z-50 absolute bg-slate-50 h-full justify-center">
+        <img src="logo.jpg" alt="FinPe Light Logo" class="w-24 h-24 rounded-2xl shadow-lg mb-6 object-cover bg-white">
         <h1 class="font-black text-4xl mb-1 text-slate-900">Fin<span class="text-blue-600">Pe</span> <span class="text-xl text-gray-400 font-light">Light</span></h1>
-        <p class="text-sm text-gray-500 mb-10">Area riservata. Sblocca per accedere.</p>
         
-        <button id="btn-unlock" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 transition transform active:scale-95 flex items-center justify-center gap-3 text-lg">
-            <i class="fas fa-fingerprint text-2xl"></i> Sblocca App
-        </button>
+        <input type="password" id="pin-input" class="w-full text-center text-4xl tracking-[0.5em] py-4 rounded-xl border-2 border-slate-200 mt-8 mb-4 outline-none focus:border-blue-500 transition" maxlength="4" placeholder="••••" inputmode="numeric">
+        
+        <div class="flex gap-2 w-full">
+            <button id="btn-verify-pin" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-700 transition transform active:scale-95">Sblocca</button>
+            <button id="btn-biometric" class="py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition transform active:scale-95">
+                <i class="fas fa-fingerprint text-xl"></i>
+            </button>
+        </div>
         <p id="auth-msg" class="text-red-500 text-sm mt-4 hidden font-medium"></p>
     </div>
 
-    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md mx-auto relative bg-white shadow-2xl">
-        <header class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10">
+    <div id="firebase-login-screen" class="hidden w-full max-w-sm px-6 flex-col items-center text-center z-40 absolute bg-slate-50 h-full justify-center">
+        <h2 class="font-black text-2xl mb-2">Connessione Database</h2>
+        <p class="text-sm text-gray-500 mb-6">Inserisci le credenziali di Firebase per il primo accesso.</p>
+        <input type="email" id="fb-email" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-3" placeholder="Email Firebase">
+        <input type="password" id="fb-pass" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-6" placeholder="Password Firebase">
+        <button id="btn-fb-login" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition">Connetti</button>
+        <p id="fb-error" class="text-red-500 text-sm mt-4 hidden"></p>
+    </div>
+
+    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md mx-auto relative bg-white shadow-2xl overflow-hidden">
+        
+        <header class="p-4 border-b flex justify-between items-center bg-white sticky top-0 z-10 shadow-sm">
             <div class="flex items-center gap-3">
-                <img src="logo.jpg" alt="Logo" class="w-8 h-8 rounded-lg shadow-sm" onerror="this.style.display='none';">
+                <img src="logo.jpg" alt="Logo" class="w-8 h-8 rounded-lg shadow-sm">
                 <h2 class="font-black text-xl">Fin<span class="text-blue-600">Pe</span></h2>
             </div>
-            <button onclick="lockApp()" class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center hover:bg-gray-200">
-                <i class="fas fa-lock"></i>
-            </button>
-        </header>
-        <main class="flex-1 p-4 overflow-y-auto">
-            <div class="p-8 text-center text-gray-400">
-                <i class="fas fa-hammer text-4xl mb-3 text-gray-300"></i>
-                <p>Database connesso. Interfaccia in costruzione.</p>
+            <div class="flex gap-2">
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-cog"></i></button>
+                <button onclick="lockApp()" class="w-10 h-10 rounded-full bg-gray-50 text-gray-600 flex items-center justify-center hover:bg-gray-200 transition"><i class="fas fa-lock"></i></button>
             </div>
+        </header>
+
+        <nav class="flex border-b bg-gray-50">
+            <button onclick="switchTab('cycle')" id="tab-cycle" class="flex-1 py-3 text-sm font-bold border-b-2 border-blue-600 text-blue-600 transition">Ciclo 20-20</button>
+            <button onclick="switchTab('calendar')" id="tab-calendar" class="flex-1 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 transition">Calendario</button>
+            <button onclick="switchTab('annual')" id="tab-annual" class="flex-1 py-3 text-sm font-bold border-b-2 border-transparent text-gray-500 transition">Annuale</button>
+        </nav>
+        
+        <main class="flex-1 overflow-y-auto bg-slate-50 relative pb-24 hide-scrollbar">
+            
+            <div id="view-cycle" class="p-4 space-y-4">
+                <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                    <button onclick="changeCycle(-1)" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600"><i class="fas fa-chevron-left"></i></button>
+                    <div class="text-center">
+                        <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ciclo Spese</div>
+                        <div id="cycle-label" class="font-bold text-slate-800 text-sm">...</div>
+                    </div>
+                    <button onclick="changeCycle(1)" class="w-8 h-8 rounded-full bg-gray-100 text-gray-600"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-white p-4 rounded-2xl border-l-4 border-red-500 shadow-sm text-center">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-1">Da Affrontare</div>
+                        <div id="cycle-pending" class="text-xl font-black text-red-600">€ 0.00</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border-l-4 border-green-500 shadow-sm text-center">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-1">Affrontate</div>
+                        <div id="cycle-paid" class="text-xl font-black text-green-600">€ 0.00</div>
+                    </div>
+                </div>
+
+                <div id="cycle-list" class="space-y-3"></div>
+            </div>
+
+            <div id="view-calendar" class="hidden p-4">
+                <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-100 mb-4">
+                    <button onclick="changeCalMonth(-1)" class="w-8 h-8 rounded-full bg-gray-100"><i class="fas fa-chevron-left"></i></button>
+                    <div id="cal-label" class="font-bold text-slate-800 text-sm capitalize">...</div>
+                    <button onclick="changeCalMonth(1)" class="w-8 h-8 rounded-full bg-gray-100"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 mb-1 text-center text-xs font-bold text-gray-400">
+                    <div>L</div><div>M</div><div>M</div><div>G</div><div>V</div><div>S</div><div>D</div>
+                </div>
+                <div id="calendar-grid" class="grid grid-cols-7 gap-1"></div>
+            </div>
+
+            <div id="view-annual" class="hidden p-4 space-y-4">
+                <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-100">
+                    <button onclick="changeYear(-1)" class="w-8 h-8 rounded-full bg-gray-100"><i class="fas fa-chevron-left"></i></button>
+                    <div id="year-label" class="font-bold text-slate-800 text-lg">2026</div>
+                    <button onclick="changeYear(1)" class="w-8 h-8 rounded-full bg-gray-100"><i class="fas fa-chevron-right"></i></button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-slate-800 to-slate-900 text-white p-6 rounded-3xl shadow-lg text-center relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span class="text-slate-400 text-xs font-bold uppercase tracking-widest block mb-1">Totale Uscite Anno</span>
+                        <div id="year-total" class="text-4xl font-black tracking-tight">€ 0.00</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm font-bold mb-1"><span class="text-green-600">Pagate</span><span id="year-paid">€ 0.00</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-2"><div id="bar-paid" class="bg-green-500 h-2 rounded-full" style="width: 0%"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm font-bold mb-1"><span class="text-red-600">Da Pagare</span><span id="year-pending">€ 0.00</span></div>
+                        <div class="w-full bg-slate-100 rounded-full h-2"><div id="bar-pending" class="bg-red-500 h-2 rounded-full" style="width: 0%"></div></div>
+                    </div>
+                </div>
+            </div>
+
         </main>
+
+        <button onclick="openExpenseModal()" class="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center text-2xl z-20 hover:scale-105 active:scale-95 transition-transform">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <div id="settings-panel" class="absolute inset-0 bg-white z-30 hidden flex-col">
+            <header class="p-4 border-b flex items-center gap-4 bg-gray-50">
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"><i class="fas fa-arrow-left"></i></button>
+                <h2 class="font-bold text-lg">Impostazioni</h2>
+            </header>
+            <div class="p-6">
+                <div class="p-5 border border-red-200 bg-red-50 rounded-2xl">
+                    <h3 class="font-bold text-red-600 mb-2"><i class="fas fa-tools"></i> Migrazione Vecchi Dati</h3>
+                    <p class="text-xs text-red-500 mb-4">Questa operazione prende tutte le vecchie "Uscite", le sposta nel nuovo sistema e cancella tutto il resto del vecchio database (Entrate, Categorie). Usa questo pulsante una volta sola.</p>
+                    <button id="btn-migrate" onclick="migrateData()" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow hover:bg-red-700 transition">Esegui Migrazione Ora</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="expense-modal" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex-col justify-end">
+            <div class="bg-white rounded-t-3xl p-6 shadow-2xl transform transition-transform" style="max-height: 90vh; overflow-y: auto;">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modal-title" class="font-black text-2xl">Nuova Spesa</h3>
+                    <button onclick="closeExpenseModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center"><i class="fas fa-times"></i></button>
+                </div>
+                
+                <input type="hidden" id="exp-id">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label>
+                        <input type="text" id="exp-desc" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold" placeholder="Es. Bollo Auto">
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Importo (€)</label>
+                        <input type="number" id="exp-amount" step="0.01" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-black text-2xl text-blue-600" placeholder="0.00">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
+                        <button id="btn-type-exact" onclick="setExpDateType('exact')" class="py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600">Data Esatta</button>
+                        <button id="btn-type-month" onclick="setExpDateType('month')" class="py-2 text-sm font-bold rounded-lg text-gray-500">Solo Mese</button>
+                    </div>
+
+                    <div>
+                        <input type="date" id="exp-date-exact" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold">
+                        <input type="month" id="exp-date-month" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold hidden">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Ricorrenza</label>
+                        <select id="exp-recurrence" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold">
+                            <option value="none">Nessuna</option>
+                            <option value="1m">Ogni mese</option>
+                            <option value="2m">Ogni 2 mesi</option>
+                            <option value="6m">Ogni 6 mesi</option>
+                            <option value="1y">Ogni anno</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <input type="checkbox" id="exp-status" class="w-6 h-6 rounded text-blue-600">
+                        <label for="exp-status" class="font-bold cursor-pointer select-none">Segna come PAGATO</label>
+                    </div>
+
+                    <div class="flex gap-2 pt-4">
+                        <button id="btn-delete" onclick="deleteExpense()" class="hidden px-4 py-4 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition"><i class="fas fa-trash"></i></button>
+                        <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition active:scale-95">Salva Spesa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // Le chiavi del tuo vecchio progetto recuperate per FinPe Light
+        // CONFIGURAZIONE FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBJo5E4GjwNw9qyS30_4mHHGpo4ve5nErE",
             authDomain: "finpe-385e6.firebaseapp.com",
@@ -56,44 +212,56 @@
             messagingSenderId: "977985288512",
             appId: "1:977985288512:web:3d0e0d0857bfb28c8f22a5"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // Logica di Sblocco Biometrico (WebAuthn / Sblocco Schermo)
-        document.getElementById('btn-unlock').addEventListener('click', async () => {
-            const msgEl = document.getElementById('auth-msg');
-            msgEl.classList.add('hidden');
-            
+        // DATI LOCALI
+        const APP_PIN = "4036";
+        let expenses = [];
+        let currentCycleDate = new Date();
+        let currentCalDate = new Date();
+        let currentYear = new Date().getFullYear();
+        let currentExpDateType = 'exact';
+
+        // GESTIONE SBLOCCO SCHERMATE
+        document.getElementById('btn-verify-pin').addEventListener('click', unlockWithPin);
+        document.getElementById('pin-input').addEventListener('keypress', e => { if (e.key === 'Enter') unlockWithPin(); });
+
+        function unlockWithPin() {
+            if(document.getElementById('pin-input').value === APP_PIN) checkFirebaseAuth();
+            else alert("PIN Errato!");
+        }
+
+        document.getElementById('btn-biometric').addEventListener('click', async () => {
             try {
-                // Genera una sfida temporanea per chiedere l'impronta al dispositivo
-                const challenge = new Uint8Array(32);
-                window.crypto.getRandomValues(challenge);
+                const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
+                const cred = await navigator.credentials.create({ publicKey: { challenge, rp: { name: "FinPe Light" }, user: { id: new Uint8Array(16), name: "user", displayName: "User" }, pubKeyCredParams: [{type: "public-key", alg: -7}], authenticatorSelection: { userVerification: "required" }, timeout: 60000 } });
+                if(cred) checkFirebaseAuth();
+            } catch (err) { alert("Impronta non rilevata. Usa il PIN."); }
+        });
 
-                const credential = await navigator.credentials.create({
-                    publicKey: {
-                        challenge: challenge,
-                        rp: { name: "FinPe Light" },
-                        user: {
-                            id: new Uint8Array(16),
-                            name: "utente@finpe",
-                            displayName: "Utente FinPe"
-                        },
-                        pubKeyCredParams: [{type: "public-key", alg: -7}], // ECDSA w/ SHA-256
-                        authenticatorSelection: { userVerification: "required" },
-                        timeout: 60000
-                    }
-                });
+        function checkFirebaseAuth() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            if (auth.currentUser) {
+                initApp();
+            } else {
+                document.getElementById('firebase-login-screen').classList.remove('hidden');
+                document.getElementById('firebase-login-screen').classList.add('flex');
+            }
+        }
 
-                if(credential) {
-                    document.getElementById('auth-screen').classList.add('hidden');
-                    document.getElementById('app-screen').classList.remove('hidden');
-                    document.getElementById('app-screen').classList.add('flex');
-                }
-            } catch (err) {
-                console.error(err);
-                msgEl.textContent = "Sblocco annullato o non supportato dal dispositivo. Riprova.";
-                msgEl.classList.remove('hidden');
+        document.getElementById('btn-fb-login').addEventListener('click', async () => {
+            const email = document.getElementById('fb-email').value;
+            const pass = document.getElementById('fb-pass').value;
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                document.getElementById('firebase-login-screen').classList.add('hidden');
+                document.getElementById('firebase-login-screen').classList.remove('flex');
+                initApp();
+            } catch (error) {
+                document.getElementById('fb-error').textContent = error.message;
+                document.getElementById('fb-error').classList.remove('hidden');
             }
         });
 
@@ -101,7 +269,299 @@
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('flex');
             document.getElementById('auth-screen').classList.remove('hidden');
+            document.getElementById('pin-input').value = "";
         }
+
+        // INIZIALIZZAZIONE APP
+        function initApp() {
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('flex');
+            loadData();
+        }
+
+        function loadData() {
+            if(!auth.currentUser) return;
+            // Leggiamo la nuova collection "expenses_light"
+            db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').onSnapshot(snap => {
+                expenses = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderAll();
+            });
+        }
+
+        // MIGRAZIONE DATI (ZONA PERICOLO)
+        async function migrateData() {
+            if(!confirm("ATTENZIONE: Questa azione prenderà le spese della vecchia app e distruggerà tutto il resto (Entrate, Fondi). Procedere?")) return;
+            const btn = document.getElementById('btn-migrate'); btn.textContent = "Lavoro in corso..."; btn.disabled = true;
+            try {
+                const uid = auth.currentUser.uid;
+                const oldTrans = await db.collection('users').doc(uid).collection('transactions').get();
+                const newExpRef = db.collection('users').doc(uid).collection('expenses_light');
+                const batch = db.batch();
+
+                // 1. Sposta le vecchie spese
+                oldTrans.forEach(doc => {
+                    const data = doc.data();
+                    if(data.type === 'expense') {
+                        const newDoc = newExpRef.doc();
+                        batch.set(newDoc, {
+                            desc: data.description || 'Spesa',
+                            amount: Number(data.amount) || 0,
+                            date: data.date,
+                            dateType: 'exact',
+                            status: data.status === 'done' ? 'paid' : 'pending',
+                            recurrence: 'none'
+                        });
+                    }
+                    batch.delete(doc.ref); // 2. Cancella la vecchia transazione
+                });
+
+                // 3. Cancella le vecchie categorie
+                const oldCats = await db.collection('users').doc(uid).collection('categories').get();
+                oldCats.forEach(doc => batch.delete(doc.ref));
+
+                await batch.commit();
+                alert("Migrazione completata. Il database è ora pulito e pronto per FinPe Light.");
+                toggleSettings();
+            } catch (error) {
+                alert("Errore migrazione: " + error.message);
+            } finally {
+                btn.textContent = "Esegui Migrazione Ora"; btn.disabled = false;
+            }
+        }
+
+        // LOGICA UI
+        function switchTab(tab) {
+            ['cycle', 'calendar', 'annual'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('border-blue-600', 'text-blue-600');
+                document.getElementById(`tab-${t}`).classList.add('border-transparent', 'text-gray-500');
+            });
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            document.getElementById(`tab-${tab}`).classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById(`tab-${tab}`).classList.add('border-blue-600', 'text-blue-600');
+            renderAll();
+        }
+
+        function toggleSettings() {
+            const p = document.getElementById('settings-panel');
+            p.classList.toggle('hidden'); p.classList.toggle('flex');
+        }
+
+        function renderAll() {
+            renderCycle(); renderCalendar(); renderAnnual();
+        }
+
+        // MOTORE CICLO 20-20
+        function getCycleDates(refDate) {
+            const d = new Date(refDate);
+            let start, end;
+            if (d.getDate() >= 20) {
+                start = new Date(d.getFullYear(), d.getMonth(), 20);
+                end = new Date(d.getFullYear(), d.getMonth() + 1, 19);
+            } else {
+                start = new Date(d.getFullYear(), d.getMonth() - 1, 20);
+                end = new Date(d.getFullYear(), d.getMonth(), 19);
+            }
+            return { 
+                startStr: start.toISOString().slice(0,10), 
+                endStr: end.toISOString().slice(0,10),
+                label: `${start.getDate()} ${start.toLocaleString('it',{month:'short'})} - ${end.getDate()} ${end.toLocaleString('it',{month:'short'})} ${end.getFullYear()}`
+            };
+        }
+
+        function changeCycle(dir) {
+            currentCycleDate.setMonth(currentCycleDate.getMonth() + dir);
+            renderCycle();
+        }
+
+        function renderCycle() {
+            const cycle = getCycleDates(currentCycleDate);
+            document.getElementById('cycle-label').textContent = cycle.label;
+            
+            const filtered = expenses.filter(e => {
+                let expDateStr = e.dateType === 'month' ? `${e.date}-01` : e.date;
+                return expDateStr >= cycle.startStr && expDateStr <= cycle.endStr;
+            }).sort((a,b) => (a.date > b.date ? 1 : -1));
+
+            let paid = 0, pending = 0;
+            const listHtml = filtered.map(e => {
+                if(e.status === 'paid') paid += e.amount; else pending += e.amount;
+                const isPaid = e.status === 'paid';
+                return `
+                <div onclick="openExpenseModal('${e.id}')" class="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center active:scale-95 transition cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <div class="w-1.5 h-10 rounded-full ${isPaid ? 'bg-green-500' : 'bg-red-500'}"></div>
+                        <div>
+                            <div class="font-bold text-slate-800 ${isPaid?'line-through text-gray-400':''}">${e.desc}</div>
+                            <div class="text-xs text-gray-400 font-bold tracking-wider">${e.dateType==='month' ? e.date.split('-').reverse().join('/') : e.date.split('-').reverse().join('/')}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-black text-lg ${isPaid ? 'text-green-600' : 'text-slate-800'}">€ ${e.amount.toFixed(2)}</div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            document.getElementById('cycle-paid').textContent = `€ ${paid.toFixed(2)}`;
+            document.getElementById('cycle-pending').textContent = `€ ${pending.toFixed(2)}`;
+            document.getElementById('cycle-list').innerHTML = listHtml || '<p class="text-center text-gray-400 text-sm py-6">Nessuna spesa in questo ciclo.</p>';
+        }
+
+        // MOTORE CALENDARIO
+        function changeCalMonth(dir) {
+            currentCalDate.setMonth(currentCalDate.getMonth() + dir);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const y = currentCalDate.getFullYear(), m = currentCalDate.getMonth();
+            document.getElementById('cal-label').textContent = `${currentCalDate.toLocaleString('it',{month:'long'})} ${y}`;
+            const grid = document.getElementById('calendar-grid'); grid.innerHTML = '';
+            
+            const firstDay = new Date(y, m, 1).getDay() || 7;
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+
+            for(let i=1; i<firstDay; i++) grid.innerHTML += `<div></div>`;
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const dayExps = expenses.filter(e => (e.dateType === 'exact' && e.date === dateStr) || (e.dateType === 'month' && e.date === `${y}-${String(m+1).padStart(2,'0')}` && i===1));
+                
+                let dotHtml = '';
+                if(dayExps.length > 0) {
+                    const hasPending = dayExps.some(e => e.status === 'pending');
+                    dotHtml = `<div class="w-2 h-2 rounded-full mx-auto mt-1 ${hasPending ? 'bg-red-500' : 'bg-green-500'}"></div>`;
+                }
+
+                grid.innerHTML += `<div class="bg-white rounded-xl p-2 h-14 border border-slate-100 flex flex-col items-center justify-center relative cursor-pointer active:bg-blue-50 transition" onclick="alert('Spese del giorno:\\n${dayExps.map(e=>e.desc).join('\\n')||'Nessuna'}')"><span class="text-sm font-bold text-slate-700">${i}</span>${dotHtml}</div>`;
+            }
+        }
+
+        // MOTORE ANNUALE
+        function changeYear(dir) { currentYear += dir; renderAnnual(); }
+
+        function renderAnnual() {
+            document.getElementById('year-label').textContent = currentYear;
+            let paid = 0, pending = 0;
+            expenses.forEach(e => {
+                if(e.date.startsWith(currentYear.toString())) {
+                    if(e.status === 'paid') paid += e.amount; else pending += e.amount;
+                }
+            });
+            const tot = paid + pending;
+            document.getElementById('year-total').textContent = `€ ${tot.toFixed(2)}`;
+            document.getElementById('year-paid').textContent = `€ ${paid.toFixed(2)}`;
+            document.getElementById('year-pending').textContent = `€ ${pending.toFixed(2)}`;
+            
+            document.getElementById('bar-paid').style.width = tot ? `${(paid/tot)*100}%` : '0%';
+            document.getElementById('bar-pending').style.width = tot ? `${(pending/tot)*100}%` : '0%';
+        }
+
+        // GESTIONE MODALE E CRUD SPESE
+        function openExpenseModal(id = null) {
+            const m = document.getElementById('expense-modal');
+            const todayStr = new Date().toISOString().slice(0,10);
+            const monthStr = todayStr.slice(0,7);
+            
+            if(id) {
+                const e = expenses.find(x => x.id === id);
+                document.getElementById('modal-title').textContent = "Modifica Spesa";
+                document.getElementById('exp-id').value = e.id;
+                document.getElementById('exp-desc').value = e.desc;
+                document.getElementById('exp-amount').value = e.amount;
+                setExpDateType(e.dateType || 'exact');
+                if(e.dateType === 'month') document.getElementById('exp-date-month').value = e.date;
+                else document.getElementById('exp-date-exact').value = e.date;
+                document.getElementById('exp-recurrence').value = e.recurrence || 'none';
+                document.getElementById('exp-status').checked = (e.status === 'paid');
+                document.getElementById('btn-delete').classList.remove('hidden');
+            } else {
+                document.getElementById('modal-title').textContent = "Nuova Spesa";
+                document.getElementById('exp-id').value = '';
+                document.getElementById('exp-desc').value = '';
+                document.getElementById('exp-amount').value = '';
+                setExpDateType('exact');
+                document.getElementById('exp-date-exact').value = todayStr;
+                document.getElementById('exp-date-month').value = monthStr;
+                document.getElementById('exp-recurrence').value = 'none';
+                document.getElementById('exp-status').checked = false;
+                document.getElementById('btn-delete').classList.add('hidden');
+            }
+            m.classList.remove('hidden'); m.classList.add('flex');
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expense-modal').classList.add('hidden');
+            document.getElementById('expense-modal').classList.remove('flex');
+        }
+
+        function setExpDateType(type) {
+            currentExpDateType = type;
+            const bExact = document.getElementById('btn-type-exact');
+            const bMonth = document.getElementById('btn-type-month');
+            const iExact = document.getElementById('exp-date-exact');
+            const iMonth = document.getElementById('exp-date-month');
+
+            if(type === 'exact') {
+                bExact.className = 'py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600';
+                bMonth.className = 'py-2 text-sm font-bold rounded-lg text-gray-500';
+                iExact.classList.remove('hidden'); iMonth.classList.add('hidden');
+            } else {
+                bMonth.className = 'py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600';
+                bExact.className = 'py-2 text-sm font-bold rounded-lg text-gray-500';
+                iMonth.classList.remove('hidden'); iExact.classList.add('hidden');
+            }
+        }
+
+        async function saveExpense() {
+            const id = document.getElementById('exp-id').value;
+            const desc = document.getElementById('exp-desc').value;
+            const amount = parseFloat(document.getElementById('exp-amount').value) || 0;
+            const status = document.getElementById('exp-status').checked ? 'paid' : 'pending';
+            const dateType = currentExpDateType;
+            const dateStr = dateType === 'exact' ? document.getElementById('exp-date-exact').value : document.getElementById('exp-date-month').value;
+            const recurrence = document.getElementById('exp-recurrence').value;
+
+            if(!desc || !dateStr) return alert("Inserisci descrizione e data.");
+
+            const expData = { desc, amount, date: dateStr, dateType, status, recurrence };
+            const uid = auth.currentUser.uid;
+
+            try {
+                if(id) {
+                    const oldExp = expenses.find(x => x.id === id);
+                    await db.collection('users').doc(uid).collection('expenses_light').doc(id).update(expData);
+                    
+                    // Logica a "staffetta" per la ricorrenza
+                    if (status === 'paid' && oldExp.status === 'pending' && recurrence !== 'none') {
+                        let nextDate = new Date(dateType === 'month' ? `${dateStr}-01` : dateStr);
+                        if (recurrence === '1m') nextDate.setMonth(nextDate.getMonth() + 1);
+                        if (recurrence === '2m') nextDate.setMonth(nextDate.getMonth() + 2);
+                        if (recurrence === '6m') nextDate.setMonth(nextDate.getMonth() + 6);
+                        if (recurrence === '1y') nextDate.setFullYear(nextDate.getFullYear() + 1);
+                        
+                        const nextDateStr = dateType === 'month' ? nextDate.toISOString().slice(0,7) : nextDate.toISOString().slice(0,10);
+                        
+                        await db.collection('users').doc(uid).collection('expenses_light').add({
+                            ...expData, status: 'pending', date: nextDateStr
+                        });
+                    }
+                } else {
+                    await db.collection('users').doc(uid).collection('expenses_light').add(expData);
+                }
+                closeExpenseModal();
+            } catch(e) { alert("Errore: " + e.message); }
+        }
+
+        async function deleteExpense() {
+            if(!confirm("Cancellare questa spesa?")) return;
+            const id = document.getElementById('exp-id').value;
+            try {
+                await db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').doc(id).delete();
+                closeExpenseModal();
+            } catch(e) { alert("Errore: " + e.message); }
+        }
+
     </script>
 </body>
 </html>
