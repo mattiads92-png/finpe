@@ -12,6 +12,38 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.4s ease-out forwards',
+                        'bounce-slight': 'bounceSlight 2s infinite ease-in-out'
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(15px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        bounceSlight: {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
         body { 
             font-family: 'Outfit', sans-serif; 
@@ -19,69 +51,78 @@
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .modal-container { max-height: 85dvh; } 
+        /* Regola di ritardo per far apparire le spese a cascata */
+        .stagger-1 { animation-delay: 50ms; }
+        .stagger-2 { animation-delay: 100ms; }
+        .stagger-3 { animation-delay: 150ms; }
+        .stagger-4 { animation-delay: 200ms; }
+        .stagger-5 { animation-delay: 250ms; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-200 via-slate-50 to-slate-200">
+<body class="text-slate-800 dark:text-slate-100 h-screen flex flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-slate-200 via-slate-50 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-500">
 
-    <div id="auth-screen" class="w-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center backdrop-blur-md bg-white/60">
-        <img src="MLogo.webp" alt="FinPe Light Logo" class="w-24 h-24 rounded-2xl shadow-lg mb-6 object-cover bg-white" onerror="this.src='https://via.placeholder.com/100?text=F';">
-        <h1 class="font-black text-4xl mb-1 text-slate-900">Fin<span class="text-blue-600">Pe</span> <span class="text-xl text-gray-400 font-light">Light</span></h1>
+    <div id="auth-screen" class="w-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center backdrop-blur-md bg-white/60 dark:bg-slate-900/80 transition-all duration-500">
+        <img src="MLogo.webp" alt="FinPe Light Logo" class="w-24 h-24 rounded-2xl shadow-xl mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=F';">
+        <h1 class="font-black text-4xl mb-1 text-slate-900 dark:text-white animate-fade-in-up stagger-1">Fin<span class="text-blue-600 dark:text-blue-400">Pe</span> <span class="text-xl text-gray-400 font-light">Light</span></h1>
         
-        <input type="password" id="pin-input" class="w-full max-w-sm text-center text-4xl tracking-[0.5em] py-4 rounded-xl border-2 border-slate-300 bg-white/80 mt-8 mb-4 outline-none focus:border-blue-500 transition shadow-sm" maxlength="4" placeholder="••••" inputmode="numeric">
+        <input type="password" id="pin-input" class="w-full max-w-sm text-center text-4xl tracking-[0.5em] py-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 bg-white/80 dark:bg-slate-800 mt-8 mb-4 outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-all shadow-sm animate-fade-in-up stagger-2 text-slate-900 dark:text-white" maxlength="4" placeholder="••••" inputmode="numeric">
         
-        <div class="flex gap-2 w-full max-w-sm">
-            <button id="btn-verify-pin" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-700 transition transform active:scale-95">Sblocca</button>
-            <button id="btn-biometric" class="py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition transform active:scale-95">
+        <div class="flex gap-2 w-full max-w-sm animate-fade-in-up stagger-3">
+            <button id="btn-verify-pin" class="flex-1 py-4 bg-blue-600 dark:bg-blue-500 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition transform active:scale-95">Sblocca</button>
+            <button id="btn-biometric" class="py-4 px-6 bg-slate-900 dark:bg-slate-700 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition transform active:scale-95">
                 <i class="fas fa-fingerprint text-xl"></i>
             </button>
         </div>
-        <p id="auth-msg" class="text-red-500 text-sm mt-4 hidden font-medium"></p>
+        <p id="auth-msg" class="text-red-500 dark:text-red-400 text-sm mt-4 hidden font-medium"></p>
     </div>
 
-    <div id="firebase-login-screen" class="hidden w-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center backdrop-blur-md bg-white/60">
-        <div class="w-full max-w-sm bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
-            <h2 class="font-black text-2xl mb-2">Connessione DB</h2>
-            <p class="text-sm text-gray-500 mb-6">Inserisci le credenziali di Firebase.</p>
-            <input type="email" id="fb-email" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-3" placeholder="Email Firebase">
-            <input type="password" id="fb-pass" class="w-full p-4 rounded-xl border-2 border-slate-200 mb-6" placeholder="Password Firebase">
-            <button id="btn-fb-login" class="w-full py-4 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition">Connetti</button>
-            <p id="fb-error" class="text-red-500 text-sm mt-4 hidden"></p>
+    <div id="firebase-login-screen" class="hidden w-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center backdrop-blur-md bg-white/60 dark:bg-slate-900/80">
+        <div class="w-full max-w-sm bg-white dark:bg-slate-800 p-6 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 transform transition-all scale-100">
+            <h2 class="font-black text-2xl mb-2 dark:text-white">Connessione DB</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Inserisci le credenziali di Firebase.</p>
+            <input type="email" id="fb-email" class="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white mb-3 focus:border-blue-500 outline-none transition" placeholder="Email Firebase">
+            <input type="password" id="fb-pass" class="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white mb-6 focus:border-blue-500 outline-none transition" placeholder="Password Firebase">
+            <button id="btn-fb-login" class="w-full py-4 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 dark:hover:bg-blue-700 transition transform active:scale-95">Connetti</button>
+            <p id="fb-error" class="text-red-500 dark:text-red-400 text-sm mt-4 hidden"></p>
         </div>
     </div>
 
-    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md md:max-w-3xl mx-auto relative bg-white/90 backdrop-blur-sm shadow-2xl overflow-hidden border-x border-slate-200/50">
+    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md md:max-w-3xl mx-auto relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-2xl overflow-hidden border-x border-slate-200/50 dark:border-slate-700/50 transition-colors duration-500">
         
-        <header class="p-4 border-b border-slate-200 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm">
+        <header class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-10 shadow-sm transition-colors duration-500">
             <div class="flex items-center gap-3">
                 <img src="MLogo.webp" alt="Logo" class="w-8 h-8 rounded-lg shadow-sm" onerror="this.style.display='none';">
-                <h2 class="font-black text-xl">Fin<span class="text-blue-600">Pe</span></h2>
+                <h2 class="font-black text-xl dark:text-white">Fin<span class="text-blue-600 dark:text-blue-400">Pe</span></h2>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition"><i class="fas fa-cog"></i></button>
-                <button onclick="lockApp()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition"><i class="fas fa-lock"></i></button>
+                <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-yellow-400 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition transform active:scale-90">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition transform active:scale-90"><i class="fas fa-cog"></i></button>
+                <button onclick="lockApp()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition transform active:scale-90"><i class="fas fa-lock"></i></button>
             </div>
         </header>
         
         <main class="flex-1 overflow-y-auto relative pb-24 hide-scrollbar">
             <div class="p-4 space-y-4 max-w-2xl mx-auto">
                 
-                <div class="flex justify-between items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
-                    <button onclick="changeCycle(-1)" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"><i class="fas fa-chevron-left"></i></button>
+                <div class="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+                    <button onclick="changeCycle(-1)" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition transform active:scale-90"><i class="fas fa-chevron-left"></i></button>
                     <div class="text-center">
                         <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Periodo Attuale</div>
-                        <div id="cycle-label" class="font-bold text-slate-800 text-sm">...</div>
+                        <div id="cycle-label" class="font-bold text-slate-800 dark:text-slate-100 text-sm">...</div>
                     </div>
-                    <button onclick="changeCycle(1)" class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200"><i class="fas fa-chevron-right"></i></button>
+                    <button onclick="changeCycle(1)" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition transform active:scale-90"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-3 mb-6">
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-center">
-                        <div class="text-xs font-bold text-red-600 uppercase mb-1">Da Pagare</div>
-                        <div id="cycle-pending" class="text-xl font-black text-red-600">€ 0.00</div>
+                    <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center transition-colors">
+                        <div class="text-xs font-bold text-red-600 dark:text-red-400 uppercase mb-1">Da Pagare</div>
+                        <div id="cycle-pending" class="text-2xl font-black text-red-600 dark:text-red-400">€ 0.00</div>
                     </div>
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 text-center">
-                        <div class="text-xs font-bold text-gray-500 uppercase mb-1">Pagate</div>
-                        <div id="cycle-paid" class="text-xl font-black text-slate-800">€ 0.00</div>
+                    <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 text-center transition-colors">
+                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Pagate</div>
+                        <div id="cycle-paid" class="text-2xl font-black text-slate-800 dark:text-slate-100">€ 0.00</div>
                     </div>
                 </div>
 
@@ -89,59 +130,59 @@
             </div>
         </main>
 
-        <button onclick="openExpenseModal()" class="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-xl flex items-center justify-center text-2xl z-20 hover:scale-105 active:scale-95 transition-transform border-2 border-white">
+        <button onclick="openExpenseModal()" class="absolute bottom-6 right-6 w-14 h-14 bg-blue-600 dark:bg-blue-500 text-white rounded-full shadow-blue-500/50 shadow-xl flex items-center justify-center text-2xl z-20 hover:scale-105 active:scale-95 transition-all duration-300 border-2 border-white dark:border-slate-800 animate-bounce-slight">
             <i class="fas fa-plus"></i>
         </button>
 
-        <div id="settings-panel" class="absolute inset-0 bg-slate-50 z-30 hidden flex-col">
-            <header class="p-4 border-b border-slate-200 flex items-center gap-4 bg-white">
-                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-slate-100 shadow-sm flex items-center justify-center hover:bg-slate-200"><i class="fas fa-arrow-left"></i></button>
-                <h2 class="font-bold text-lg">Impostazioni</h2>
+        <div id="settings-panel" class="absolute inset-0 bg-slate-50 dark:bg-slate-900 z-30 hidden flex-col transition-colors duration-500">
+            <header class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-4 bg-white dark:bg-slate-800">
+                <button onclick="toggleSettings()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 shadow-sm flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition transform active:scale-90"><i class="fas fa-arrow-left"></i></button>
+                <h2 class="font-bold text-lg dark:text-white">Impostazioni</h2>
             </header>
             <div class="p-6 max-w-2xl mx-auto w-full">
-                <div class="p-5 border border-red-200 bg-red-50 rounded-2xl">
-                    <h3 class="font-bold text-red-600 mb-2"><i class="fas fa-tools"></i> Migrazione Vecchi Dati</h3>
-                    <p class="text-xs text-red-500 mb-4">Sposta le vecchie "Uscite" nel nuovo sistema e cancella il resto.</p>
-                    <button id="btn-migrate" onclick="migrateData()" class="w-full py-3 bg-red-600 text-white font-bold rounded-xl shadow hover:bg-red-700 transition">Esegui Migrazione</button>
+                <div class="p-5 border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10 rounded-2xl">
+                    <h3 class="font-bold text-red-600 dark:text-red-400 mb-2"><i class="fas fa-tools"></i> Migrazione Vecchi Dati</h3>
+                    <p class="text-xs text-red-500 dark:text-red-300/70 mb-4">Sposta le vecchie "Uscite" nel nuovo sistema e cancella il resto.</p>
+                    <button id="btn-migrate" onclick="migrateData()" class="w-full py-3 bg-red-600 dark:bg-red-500 text-white font-bold rounded-xl shadow hover:bg-red-700 dark:hover:bg-red-600 transition transform active:scale-95">Esegui Migrazione</button>
                 </div>
             </div>
         </div>
 
-        <div id="expense-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden flex-col items-center justify-center p-4">
-            <div class="bg-white rounded-3xl p-6 shadow-2xl w-full max-w-md flex flex-col modal-container">
+        <div id="expense-modal" class="fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-40 hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
+            <div id="expense-modal-content" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl w-full max-w-md flex flex-col modal-container transform scale-95 transition-all duration-300">
                 <div class="flex justify-between items-center mb-6 shrink-0">
-                    <h3 id="modal-title" class="font-black text-2xl">Nuova Spesa</h3>
-                    <button onclick="closeExpenseModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition"><i class="fas fa-times"></i></button>
+                    <h3 id="modal-title" class="font-black text-2xl dark:text-white">Nuova Spesa</h3>
+                    <button onclick="closeExpenseModal()" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition transform active:scale-90"><i class="fas fa-times"></i></button>
                 </div>
                 
                 <input type="hidden" id="exp-id">
                 
-                <div class="space-y-4 overflow-y-auto hide-scrollbar flex-1 pb-2">
+                <div class="space-y-4 overflow-y-auto hide-scrollbar flex-1 pb-2 pr-1">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Descrizione</label>
-                        <input type="text" id="exp-desc" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold focus:border-blue-500 outline-none transition" placeholder="Es. Bollo Auto">
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Descrizione</label>
+                        <input type="text" id="exp-desc" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white font-bold focus:border-blue-500 dark:focus:border-blue-400 outline-none transition" placeholder="Es. Bollo Auto">
                     </div>
                     
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Importo (€)</label>
-                        <input type="number" id="exp-amount" step="0.01" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-black text-2xl text-blue-600 focus:border-blue-500 outline-none transition" placeholder="0.00">
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Importo (€)</label>
+                        <input type="number" id="exp-amount" step="0.01" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 font-black text-2xl text-blue-600 dark:text-blue-400 focus:border-blue-500 dark:focus:border-blue-400 outline-none transition" placeholder="0.00">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                        <button id="btn-type-exact" onclick="setExpDateType('exact')" class="py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600">Data Esatta</button>
-                        <button id="btn-type-month" onclick="setExpDateType('month')" class="py-2 text-sm font-bold rounded-lg text-gray-500">Solo Mese</button>
-                    </div>
-
-                    <div>
-                        <input type="date" id="exp-date-exact" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold outline-none focus:border-blue-500">
-                        <input type="month" id="exp-date-month" class="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold hidden outline-none focus:border-blue-500">
+                    <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                        <button id="btn-type-exact" onclick="setExpDateType('exact')" class="py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-600 shadow text-blue-600 dark:text-blue-400 transition-all">Data Esatta</button>
+                        <button id="btn-type-month" onclick="setExpDateType('month')" class="py-2 text-sm font-bold rounded-lg text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all">Solo Mese</button>
                     </div>
 
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase">Ripeti ogni...</label>
+                        <input type="date" id="exp-date-exact" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 dark:focus:border-blue-400 transition">
+                        <input type="month" id="exp-date-month" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white font-bold hidden outline-none focus:border-blue-500 dark:focus:border-blue-400 transition">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Ripeti ogni...</label>
                         <div class="flex gap-2 items-center mt-1">
-                            <input type="number" id="exp-recurrence-val" min="1" value="1" class="hidden w-20 p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold outline-none focus:border-blue-500 text-center text-slate-800">
-                            <select id="exp-recurrence-type" class="p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold outline-none focus:border-blue-500 flex-1 text-slate-800" onchange="toggleRecurrenceValue()">
+                            <input type="number" id="exp-recurrence-val" min="1" value="1" class="hidden w-20 p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 text-center transition">
+                            <select id="exp-recurrence-type" class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 flex-1 transition" onchange="toggleRecurrenceValue()">
                                 <option value="none">Nessuna ricorrenza</option>
                                 <option value="d">Giorno/i</option>
                                 <option value="m">Mese/i</option>
@@ -150,15 +191,15 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 mt-2">
-                        <input type="checkbox" id="exp-status" class="w-6 h-6 rounded text-blue-600 border-slate-300">
-                        <label for="exp-status" class="font-bold cursor-pointer select-none text-slate-800">Segna come PAGATO</label>
+                    <div class="flex items-center gap-3 bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-200 dark:border-slate-600 mt-2 transition-colors">
+                        <input type="checkbox" id="exp-status" class="w-6 h-6 rounded text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 focus:ring-offset-0 focus:ring-0">
+                        <label for="exp-status" class="font-bold cursor-pointer select-none text-slate-800 dark:text-slate-200">Segna come PAGATO</label>
                     </div>
                 </div>
 
-                <div class="flex gap-2 pt-4 mt-2 border-t border-slate-100 shrink-0">
-                    <button id="btn-delete" onclick="deleteExpense()" class="hidden px-4 py-4 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition"><i class="fas fa-trash"></i></button>
-                    <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-900 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 transition active:scale-95">Salva Spesa</button>
+                <div class="flex gap-2 pt-4 mt-2 border-t border-slate-100 dark:border-slate-700 shrink-0">
+                    <button id="btn-delete" onclick="deleteExpense()" class="hidden px-4 py-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/50 transition transform active:scale-95"><i class="fas fa-trash"></i></button>
+                    <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-slate-800 dark:hover:bg-blue-500 transition transform active:scale-95">Salva Spesa</button>
                 </div>
             </div>
         </div>
@@ -183,6 +224,28 @@
         let currentCycleDate = new Date();
         let currentExpDateType = 'exact';
 
+        // GESTIONE TEMA (Light / Dark)
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+                icon.className = 'fas fa-moon';
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+                icon.className = 'fas fa-sun';
+            }
+        }
+
+        // Imposta icona corretta al caricamento
+        document.addEventListener('DOMContentLoaded', () => {
+            const icon = document.getElementById('theme-icon');
+            if (document.documentElement.classList.contains('dark')) icon.className = 'fas fa-sun';
+            else icon.className = 'fas fa-moon';
+        });
+
         // GESTIONE SBLOCCO SCHERMATE
         document.getElementById('btn-verify-pin').addEventListener('click', unlockWithPin);
         document.getElementById('pin-input').addEventListener('keypress', e => { if (e.key === 'Enter') unlockWithPin(); });
@@ -201,13 +264,17 @@
         });
 
         function checkFirebaseAuth() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            if (auth.currentUser) {
-                initApp();
-            } else {
-                document.getElementById('firebase-login-screen').classList.remove('hidden');
-                document.getElementById('firebase-login-screen').classList.add('flex');
-            }
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.style.opacity = '0';
+            setTimeout(() => {
+                authScreen.classList.add('hidden');
+                if (auth.currentUser) {
+                    initApp();
+                } else {
+                    document.getElementById('firebase-login-screen').classList.remove('hidden');
+                    document.getElementById('firebase-login-screen').classList.add('flex');
+                }
+            }, 300);
         }
 
         document.getElementById('btn-fb-login').addEventListener('click', async () => {
@@ -227,7 +294,9 @@
         function lockApp() {
             document.getElementById('app-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('flex');
-            document.getElementById('auth-screen').classList.remove('hidden');
+            const authScreen = document.getElementById('auth-screen');
+            authScreen.classList.remove('hidden');
+            setTimeout(() => authScreen.style.opacity = '1', 50);
             document.getElementById('pin-input').value = "";
         }
 
@@ -274,7 +343,7 @@
                 oldCats.forEach(doc => batch.delete(doc.ref));
 
                 await batch.commit();
-                alert("Migrazione completata. Il database è ora pulito e pronto per FinPe Light.");
+                alert("Migrazione completata. Il database è ora pulito.");
                 toggleSettings();
             } catch (error) {
                 alert("Errore migrazione: " + error.message);
@@ -320,7 +389,7 @@
             }).sort((a,b) => (a.date > b.date ? 1 : -1));
 
             let paid = 0, pending = 0;
-            const listHtml = filtered.map(e => {
+            const listHtml = filtered.map((e, index) => {
                 if(e.status === 'paid') paid += e.amount; else pending += e.amount;
                 const isPaid = e.status === 'paid';
                 
@@ -333,13 +402,17 @@
                     displayDate = `${parts[2]}/${parts[1]}`;
                 }
 
-                const colorClass = isPaid ? 'text-slate-500 line-through' : 'text-red-600';
-                const descClass = isPaid ? 'text-slate-500 line-through opacity-70' : 'text-slate-800';
+                // Colori adattivi per Dark Mode
+                const colorClass = isPaid ? 'text-slate-500 dark:text-slate-500 line-through' : 'text-red-600 dark:text-red-400';
+                const descClass = isPaid ? 'text-slate-500 dark:text-slate-500 line-through opacity-70' : 'text-slate-800 dark:text-slate-200';
+                
+                // Distribuiamo il ritardo dell'animazione (fino a 5 step)
+                const staggerClass = `stagger-${(index % 5) + 1}`;
 
                 return `
-                <div onclick="openExpenseModal('${e.id}')" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 active:scale-95 transition cursor-pointer hover:bg-slate-50">
+                <div onclick="openExpenseModal('${e.id}')" class="animate-fade-in-up ${staggerClass} bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 active:scale-95 transition-all cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
                     <div class="flex justify-between items-center w-full sm:w-auto">
-                        <div class="text-xs font-bold text-gray-500 whitespace-nowrap bg-slate-100 px-2 py-1 rounded">
+                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded transition-colors">
                             ${displayDate}
                         </div>
                         <div class="font-black sm:hidden ${colorClass}">
@@ -359,7 +432,7 @@
 
             document.getElementById('cycle-paid').textContent = `€ ${paid.toFixed(2)}`;
             document.getElementById('cycle-pending').textContent = `€ ${pending.toFixed(2)}`;
-            document.getElementById('cycle-list').innerHTML = listHtml || '<p class="text-center text-gray-400 text-sm py-6">Nessuna spesa in questo ciclo.</p>';
+            document.getElementById('cycle-list').innerHTML = listHtml || '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-6 animate-fade-in-up">Nessuna spesa in questo ciclo.</p>';
         }
 
         function toggleRecurrenceValue() {
@@ -374,6 +447,7 @@
 
         function openExpenseModal(id = null) {
             const m = document.getElementById('expense-modal');
+            const c = document.getElementById('expense-modal-content');
             const todayStr = new Date().toISOString().slice(0,10);
             const monthStr = todayStr.slice(0,7);
             
@@ -387,7 +461,6 @@
                 if(e.dateType === 'month') document.getElementById('exp-date-month').value = e.date;
                 else document.getElementById('exp-date-exact').value = e.date;
                 
-                // Ricostruisce la visualizzazione della ricorrenza
                 if(e.recurrence && e.recurrence !== 'none') {
                     const match = e.recurrence.match(/(\d+)([dmy])/);
                     if(match) {
@@ -418,12 +491,31 @@
                 document.getElementById('exp-status').checked = false;
                 document.getElementById('btn-delete').classList.add('hidden');
             }
-            m.classList.remove('hidden'); m.classList.add('flex');
+            
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            // Trigger animazione apertura
+            setTimeout(() => {
+                m.classList.remove('opacity-0');
+                m.classList.add('opacity-100');
+                c.classList.remove('scale-95');
+                c.classList.add('scale-100');
+            }, 10);
         }
 
         function closeExpenseModal() {
-            document.getElementById('expense-modal').classList.add('hidden');
-            document.getElementById('expense-modal').classList.remove('flex');
+            const m = document.getElementById('expense-modal');
+            const c = document.getElementById('expense-modal-content');
+            
+            m.classList.remove('opacity-100');
+            m.classList.add('opacity-0');
+            c.classList.remove('scale-100');
+            c.classList.add('scale-95');
+            
+            setTimeout(() => {
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            }, 300);
         }
 
         function setExpDateType(type) {
@@ -434,12 +526,12 @@
             const iMonth = document.getElementById('exp-date-month');
 
             if(type === 'exact') {
-                bExact.className = 'py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600';
-                bMonth.className = 'py-2 text-sm font-bold rounded-lg text-gray-500 hover:bg-slate-200 transition';
+                bExact.className = 'py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-600 shadow text-blue-600 dark:text-blue-400 transition-all';
+                bMonth.className = 'py-2 text-sm font-bold rounded-lg text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all';
                 iExact.classList.remove('hidden'); iMonth.classList.add('hidden');
             } else {
-                bMonth.className = 'py-2 text-sm font-bold rounded-lg bg-white shadow text-blue-600';
-                bExact.className = 'py-2 text-sm font-bold rounded-lg text-gray-500 hover:bg-slate-200 transition';
+                bMonth.className = 'py-2 text-sm font-bold rounded-lg bg-white dark:bg-slate-600 shadow text-blue-600 dark:text-blue-400 transition-all';
+                bExact.className = 'py-2 text-sm font-bold rounded-lg text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all';
                 iMonth.classList.remove('hidden'); iExact.classList.add('hidden');
             }
         }
@@ -456,7 +548,7 @@
             const recType = document.getElementById('exp-recurrence-type').value;
             if(recType !== 'none') {
                 const recVal = document.getElementById('exp-recurrence-val').value || 1;
-                recurrence = recVal + recType; // es. 3m, 2y, 15d
+                recurrence = recVal + recType; 
             }
 
             if(!desc || !dateStr) return alert("Inserisci descrizione e data.");
@@ -469,7 +561,6 @@
                     const oldExp = expenses.find(x => x.id === id);
                     await db.collection('users').doc(uid).collection('expenses_light').doc(id).update(expData);
                     
-                    // Logica a "staffetta" per la ricorrenza
                     if (status === 'paid' && oldExp.status === 'pending' && recurrence !== 'none') {
                         let nextDate = new Date(dateType === 'month' ? `${dateStr}-01` : dateStr);
                         const rMatch = recurrence.match(/(\d+)([dmy])/);
