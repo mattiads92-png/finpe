@@ -13,23 +13,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
-
-    <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     animation: {
                         'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
                         'slide-down': 'slideDown 0.5s ease-out forwards',
                         'bounce-slight': 'bounceSlight 2s infinite ease-in-out',
-                        'blob': 'blob 10s infinite alternate'
                     },
                     keyframes: {
                         fadeInUp: {
@@ -43,12 +33,6 @@
                         bounceSlight: {
                             '0%, 100%': { transform: 'translateY(-5%)' },
                             '50%': { transform: 'translateY(0)' }
-                        },
-                        blob: {
-                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
-                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-                            '100%': { transform: 'translate(0px, 0px) scale(1)' }
                         }
                     }
                 }
@@ -60,6 +44,7 @@
         body { 
             font-family: 'Outfit', sans-serif; 
             -webkit-tap-highlight-color: transparent; 
+            background-color: #ffffff;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .modal-container { max-height: 85dvh; } 
@@ -70,77 +55,66 @@
         .stagger-5 { animation-delay: 250ms; }
     </style>
 </head>
-<body class="text-slate-800 dark:text-slate-100 h-screen flex flex-col items-center justify-center overflow-hidden transition-colors duration-500 relative">
+<body class="text-slate-800 h-screen flex flex-col items-center justify-center overflow-hidden relative bg-white">
 
-    <div class="fixed inset-0 z-[-1] overflow-hidden bg-slate-50 dark:bg-slate-950 transition-colors duration-500">
-        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-300/40 dark:bg-blue-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob"></div>
-        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-purple-300/40 dark:bg-purple-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob" style="animation-delay: 2s;"></div>
-        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-300/40 dark:bg-indigo-600/20 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-[80px] opacity-70 animate-blob" style="animation-delay: 4s;"></div>
-    </div>
-
-    <div id="auth-screen" class="w-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center backdrop-blur-xl bg-white/40 dark:bg-slate-900/60 transition-all duration-500">
-        <img src="MLogo.webp" alt="FinPe Light Logo" class="w-28 h-28 rounded-3xl shadow-2xl mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=F';">
-        <h1 class="font-black text-5xl mb-10 text-slate-900 dark:text-white animate-fade-in-up stagger-1 tracking-tight">Fin<span class="text-blue-600 dark:text-blue-400">Pe</span> <span class="text-2xl text-gray-500 dark:text-gray-400 font-light italic">light</span></h1>
+    <div id="auth-screen" class="w-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center bg-white transition-all duration-500">
+        <img src="MLogo.webp" alt="FinPe Light Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=F';">
+        <h1 class="font-black text-5xl mb-12 text-slate-950 animate-fade-in-up stagger-1 tracking-tight">FinPe <span class="font-light text-gray-500">light</span></h1>
         
-        <input type="password" id="pin-input" class="w-full max-w-sm text-center text-4xl tracking-[0.5em] py-5 rounded-2xl border border-white/50 dark:border-slate-700/50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm mb-6 outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/20 transition-all shadow-lg animate-fade-in-up stagger-2 text-slate-900 dark:text-white" maxlength="4" placeholder="••••" inputmode="numeric">
+        <input type="password" id="pin-input" class="w-full max-w-sm text-center text-4xl tracking-[0.5em] py-5 rounded-2xl border border-slate-200 bg-white mb-6 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all shadow-md animate-fade-in-up stagger-2 text-slate-950" maxlength="4" placeholder="••••" inputmode="numeric">
         
         <div class="flex gap-3 w-full max-w-sm animate-fade-in-up stagger-3">
-            <button id="btn-verify-pin" class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/30 hover:shadow-blue-500/50 transition transform active:scale-95 text-lg">Sblocca</button>
-            <button id="btn-biometric" class="py-4 px-6 bg-slate-900 dark:bg-slate-700 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 dark:hover:bg-slate-600 transition transform active:scale-95">
+            <button id="btn-verify-pin" class="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition transform active:scale-95 text-lg">Sblocca</button>
+            <button id="btn-biometric" class="py-4 px-6 bg-slate-900 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-800 transition transform active:scale-95">
                 <i class="fas fa-fingerprint text-2xl"></i>
             </button>
         </div>
-        <p id="auth-msg" class="text-red-500 dark:text-red-400 text-sm mt-6 hidden font-medium bg-red-50 dark:bg-red-900/30 px-4 py-2 rounded-lg"></p>
+        <p id="auth-msg" class="text-red-500 text-sm mt-6 hidden font-medium bg-red-50 px-4 py-2 rounded-lg"></p>
     </div>
 
-    <div id="firebase-login-screen" class="hidden w-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center backdrop-blur-xl bg-white/40 dark:bg-slate-900/60">
-        <div class="w-full max-w-sm bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-8 rounded-[2rem] shadow-2xl border border-white/50 dark:border-slate-700/50">
-            <h2 class="font-black text-3xl mb-2 dark:text-white tracking-tight">Database</h2>
-            <p class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-8">Connessione sicura al cloud.</p>
-            <input type="email" id="fb-email" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white mb-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition" placeholder="Email Firebase">
-            <input type="password" id="fb-pass" class="w-full p-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 dark:text-white mb-8 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition" placeholder="Password Firebase">
-            <button id="btn-fb-login" class="w-full py-4 bg-slate-900 dark:bg-blue-600 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 dark:hover:bg-blue-700 transition transform active:scale-95">Sincronizza Dati</button>
-            <p id="fb-error" class="text-red-500 dark:text-red-400 text-sm mt-4 hidden"></p>
+    <div id="firebase-login-screen" class="hidden w-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center bg-white/95 backdrop-blur-sm">
+        <div class="w-full max-w-sm bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
+            <h2 class="font-black text-3xl mb-2 text-slate-950 tracking-tight">Cloud Sync</h2>
+            <p class="text-sm font-medium text-gray-500 mb-8">Connessione sicura al database.</p>
+            <input type="email" id="fb-email" class="w-full p-4 rounded-xl border border-slate-200 bg-white mb-4 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition" placeholder="Email Firebase">
+            <input type="password" id="fb-pass" class="w-full p-4 rounded-xl border border-slate-200 bg-white mb-8 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 outline-none transition" placeholder="Password Firebase">
+            <button id="btn-fb-login" class="w-full py-4 bg-slate-950 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 transition transform active:scale-95">Sincronizza Dati</button>
+            <p id="fb-error" class="text-red-500 text-sm mt-4 hidden"></p>
         </div>
     </div>
 
-    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md md:max-w-3xl mx-auto relative bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl shadow-2xl overflow-hidden border-x border-white/50 dark:border-slate-700/50 transition-colors duration-500">
+    <div id="app-screen" class="hidden w-full h-full flex-col max-w-md md:max-w-3xl mx-auto relative bg-white overflow-hidden border-x border-slate-100">
         
-        <header class="p-5 border-b border-slate-200/50 dark:border-slate-800/50 flex justify-between items-center bg-white/50 dark:bg-slate-900/50 backdrop-blur-md sticky top-0 z-10 transition-colors duration-500 animate-slide-down">
+        <header class="p-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 animate-slide-down">
             <div class="flex items-center gap-3">
-                <img src="MLogo.webp" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-white/50 dark:border-slate-700/50" onerror="this.style.display='none';">
-                <h2 class="font-black text-2xl tracking-tight dark:text-white">Fin<span class="text-blue-600 dark:text-blue-400">Pe</span> <span class="font-light italic text-gray-500 dark:text-gray-400 text-lg">light</span></h2>
+                <img src="MLogo.webp" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-slate-100" onerror="this.style.display='none';">
+                <h2 class="font-black text-2xl tracking-tight text-slate-950">FinPe <span class="font-light text-gray-500 text-lg">light</span></h2>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleTheme()" class="w-11 h-11 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-sm border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-yellow-400 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition transform active:scale-90">
-                    <i id="theme-icon" class="fas fa-moon"></i>
-                </button>
-                <button onclick="toggleSettings()" class="w-11 h-11 rounded-full bg-white/80 dark:bg-slate-800/80 shadow-sm border border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition transform active:scale-90"><i class="fas fa-cog"></i></button>
+                <button onclick="toggleSettings()" class="w-11 h-11 rounded-full bg-white shadow-md border border-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition transform active:scale-90"><i class="fas fa-cog"></i></button>
             </div>
         </header>
         
-        <main class="flex-1 overflow-y-auto relative pb-28 hide-scrollbar">
+        <main class="flex-1 overflow-y-auto relative pb-28 hide-scrollbar bg-slate-50/50">
             <div class="p-4 sm:p-6 space-y-6 max-w-2xl mx-auto">
                 
-                <div class="flex justify-between items-center bg-gradient-to-br from-white/90 to-white/50 dark:from-slate-800/90 dark:to-slate-800/50 backdrop-blur-md p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 dark:border-slate-700/50 transition-all hover:shadow-lg animate-fade-in-up">
-                    <button onclick="changeCycle(-1)" class="w-12 h-12 rounded-full bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600 transition transform active:scale-90 flex items-center justify-center text-lg border border-slate-100 dark:border-slate-600"><i class="fas fa-chevron-left"></i></button>
+                <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-lg border border-slate-100 animate-fade-in-up">
+                    <button onclick="changeCycle(-1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md hover:bg-slate-50 transition transform active:scale-90 flex items-center justify-center text-lg border border-slate-100"><i class="fas fa-chevron-left"></i></button>
                     <div class="text-center">
-                        <div class="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Periodo Attuale</div>
-                        <div id="cycle-label" class="font-black text-slate-800 dark:text-slate-100 text-xl tracking-tight">...</div>
+                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Periodo Attuale</div>
+                        <div id="cycle-label" class="font-black text-slate-950 text-xl tracking-tight">...</div>
                     </div>
-                    <button onclick="changeCycle(1)" class="w-12 h-12 rounded-full bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600 transition transform active:scale-90 flex items-center justify-center text-lg border border-slate-100 dark:border-slate-600"><i class="fas fa-chevron-right"></i></button>
+                    <button onclick="changeCycle(1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md hover:bg-slate-50 transition transform active:scale-90 flex items-center justify-center text-lg border border-slate-100"><i class="fas fa-chevron-right"></i></button>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gradient-to-br from-white/90 to-white/50 dark:from-slate-800/90 dark:to-slate-800/50 backdrop-blur-md p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 dark:border-slate-700/50 text-center transition-all animate-fade-in-up stagger-1 relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-red-500/10 dark:bg-red-500/5 rounded-full blur-xl pointer-events-none"></div>
-                        <div class="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-2 relative z-10">Da Pagare</div>
-                        <div id="cycle-pending" class="text-3xl font-black text-red-600 dark:text-red-400 tracking-tight relative z-10">€ 0.00</div>
+                    <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100 text-center animate-fade-in-up stagger-1">
+                        <div class="text-xs font-bold text-red-600 uppercase tracking-wider mb-2">Da Pagare</div>
+                        <div id="cycle-pending" class="text-3xl font-black text-red-600 tracking-tight">€ 0.00</div>
                     </div>
-                    <div class="bg-gradient-to-br from-white/90 to-white/50 dark:from-slate-800/90 dark:to-slate-800/50 backdrop-blur-md p-5 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 dark:border-slate-700/50 text-center transition-all animate-fade-in-up stagger-1 relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-16 h-16 bg-slate-500/10 dark:bg-slate-500/5 rounded-full blur-xl pointer-events-none"></div>
-                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 relative z-10">Pagate</div>
-                        <div id="cycle-paid" class="text-3xl font-black text-slate-800 dark:text-slate-100 tracking-tight relative z-10">€ 0.00</div>
+                    <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100 text-center animate-fade-in-up stagger-1">
+                        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Pagate</div>
+                        <div id="cycle-paid" class="text-3xl font-black text-slate-950 tracking-tight">€ 0.00</div>
                     </div>
                 </div>
 
@@ -148,62 +122,62 @@
             </div>
         </main>
 
-        <button onclick="openExpenseModal()" class="absolute bottom-8 right-8 w-16 h-16 bg-gradient-to-tr from-blue-600 to-indigo-500 text-white rounded-2xl shadow-[0_8px_30px_rgb(59,130,246,0.4)] flex items-center justify-center text-2xl z-20 hover:-translate-y-1 hover:shadow-[0_12px_40px_rgb(59,130,246,0.6)] active:scale-95 active:translate-y-0 transition-all duration-300 animate-bounce-slight border border-white/20">
+        <button onclick="openExpenseModal()" class="absolute bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center text-2xl z-20 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 active:translate-y-0 transition-all duration-300 animate-bounce-slight border border-white/20">
             <i class="fas fa-plus"></i>
         </button>
 
-        <div id="settings-panel" class="absolute inset-0 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xl z-30 hidden flex-col transition-colors duration-500">
-            <header class="p-5 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center gap-4 bg-transparent">
-                <button onclick="toggleSettings()" class="w-11 h-11 rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 flex items-center justify-center hover:bg-slate-50 dark:hover:bg-slate-700 transition transform active:scale-90"><i class="fas fa-arrow-left dark:text-white"></i></button>
-                <h2 class="font-black text-2xl tracking-tight dark:text-white">Impostazioni</h2>
+        <div id="settings-panel" class="absolute inset-0 bg-white z-30 hidden flex-col transition-colors duration-500">
+            <header class="p-5 border-b border-slate-100 flex items-center gap-4 bg-white sticky top-0">
+                <button onclick="toggleSettings()" class="w-11 h-11 rounded-full bg-white shadow-md border border-slate-100 flex items-center justify-center hover:bg-slate-50 transition transform active:scale-90"><i class="fas fa-arrow-left text-slate-950"></i></button>
+                <h2 class="font-black text-2xl tracking-tight text-slate-950">Impostazioni</h2>
             </header>
-            <div class="p-6 max-w-2xl mx-auto w-full flex-1 flex flex-col justify-end">
-                <div class="bg-white/80 dark:bg-slate-800/80 p-6 rounded-3xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm text-center mb-6">
-                    <img src="MLogo.webp" alt="Logo" class="w-16 h-16 rounded-2xl mx-auto mb-4 opacity-50 grayscale" onerror="this.style.display='none';">
-                    <p class="font-bold text-slate-800 dark:text-white">FinPe <span class="font-light italic text-gray-500">light</span></p>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Sincronizzazione attiva</p>
+            <div class="p-6 max-w-2xl mx-auto w-full flex-1 flex flex-col justify-end pb-12">
+                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-md text-center mb-6">
+                    <img src="MLogo.webp" alt="Logo" class="w-16 h-16 rounded-2xl mx-auto mb-4 grayscale" onerror="this.style.display='none';">
+                    <p class="font-bold text-slate-950">FinPe <span class="font-light text-gray-500">light</span></p>
+                    <p class="text-sm text-gray-500 mt-1">Sincronizzazione Cloud Attiva</p>
                 </div>
-                <button onclick="lockApp()" class="w-full py-4 bg-slate-900 dark:bg-slate-800 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition transform active:scale-95 flex items-center justify-center gap-3">
+                <button onclick="lockApp()" class="w-full py-4 bg-slate-950 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 transition transform active:scale-95 flex items-center justify-center gap-3 text-lg">
                     <i class="fas fa-lock"></i> Blocca App
                 </button>
             </div>
         </div>
 
-        <div id="expense-modal" class="fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-md z-40 hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
-            <div id="expense-modal-content" class="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-[2rem] p-6 sm:p-8 shadow-2xl w-full max-w-md flex flex-col modal-container transform scale-95 transition-all duration-300 border border-white/50 dark:border-slate-700/50">
+        <div id="expense-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
+            <div id="expense-modal-content" class="bg-white rounded-[2rem] p-6 sm:p-8 shadow-2xl w-full max-w-md flex flex-col modal-container transform scale-95 transition-all duration-300 border border-slate-100">
                 <div class="flex justify-between items-center mb-6 shrink-0">
-                    <h3 id="modal-title" class="font-black text-3xl tracking-tight dark:text-white">Nuova</h3>
-                    <button onclick="closeExpenseModal()" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-600 transition transform active:scale-90"><i class="fas fa-times"></i></button>
+                    <h3 id="modal-title" class="font-black text-3xl tracking-tight text-slate-950">Nuova</h3>
+                    <button onclick="closeExpenseModal()" class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition transform active:scale-90"><i class="fas fa-times"></i></button>
                 </div>
                 
                 <input type="hidden" id="exp-id">
                 
                 <div class="space-y-5 overflow-y-auto hide-scrollbar flex-1 pb-2 pr-1">
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block">Descrizione</label>
-                        <input type="text" id="exp-desc" class="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white font-bold focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 outline-none transition shadow-sm" placeholder="Es. Bollo Auto">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Descrizione</label>
+                        <input type="text" id="exp-desc" class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-950 font-bold focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition shadow-inner" placeholder="Es. Bollo Auto">
                     </div>
                     
                     <div>
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block">Importo (€)</label>
-                        <input type="number" id="exp-amount" step="0.01" class="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 font-black text-3xl text-blue-600 dark:text-blue-400 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 outline-none transition shadow-sm" placeholder="0.00">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 block">Importo (€)</label>
+                        <input type="number" id="exp-amount" step="0.01" class="w-full p-4 rounded-2xl border border-slate-200 bg-white font-black text-3xl text-blue-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition shadow-inner" placeholder="0.00">
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-900/50 p-1.5 rounded-2xl">
-                        <button id="btn-type-exact" onclick="setExpDateType('exact')" class="py-2.5 text-sm font-bold rounded-xl bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 transition-all">Data Esatta</button>
-                        <button id="btn-type-month" onclick="setExpDateType('month')" class="py-2.5 text-sm font-bold rounded-xl text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all">Solo Mese</button>
+                    <div class="grid grid-cols-2 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                        <button id="btn-type-exact" onclick="setExpDateType('exact')" class="py-2.5 text-sm font-bold rounded-xl bg-white shadow-md text-blue-600 transition-all border border-slate-100">Data Esatta</button>
+                        <button id="btn-type-month" onclick="setExpDateType('month')" class="py-2.5 text-sm font-bold rounded-xl text-gray-500 hover:bg-slate-100 transition-all">Solo Mese</button>
                     </div>
 
                     <div>
-                        <input type="date" id="exp-date-exact" class="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition shadow-sm">
-                        <input type="month" id="exp-date-month" class="w-full p-4 rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white font-bold hidden outline-none focus:border-blue-500 dark:focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 transition shadow-sm">
+                        <input type="date" id="exp-date-exact" class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-950 font-bold outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition shadow-inner">
+                        <input type="month" id="exp-date-month" class="w-full p-4 rounded-2xl border border-slate-200 bg-white text-slate-950 font-bold hidden outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition shadow-inner">
                     </div>
 
-                    <div class="bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-                        <label class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-2">Ripeti ogni...</label>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <label class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Ripeti ogni...</label>
                         <div class="flex gap-2 items-center">
-                            <input type="number" id="exp-recurrence-val" min="1" value="1" class="hidden w-20 p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 text-center transition shadow-sm">
-                            <select id="exp-recurrence-type" class="p-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-white font-bold outline-none focus:border-blue-500 flex-1 transition shadow-sm" onchange="toggleRecurrenceValue()">
+                            <input type="number" id="exp-recurrence-val" min="1" value="1" class="hidden w-20 p-3 rounded-xl border border-slate-200 bg-white text-slate-950 font-bold outline-none focus:border-blue-500 text-center transition shadow-inner">
+                            <select id="exp-recurrence-type" class="p-3 rounded-xl border border-slate-200 bg-white text-slate-950 font-bold outline-none focus:border-blue-500 flex-1 transition shadow-inner" onchange="toggleRecurrenceValue()">
                                 <option value="none">Nessuna ricorrenza</option>
                                 <option value="d">Giorno/i</option>
                                 <option value="m">Mese/i</option>
@@ -212,15 +186,15 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-900/30 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50 mt-2 transition-colors cursor-pointer" onclick="document.getElementById('exp-status').click()">
-                        <label class="font-bold cursor-pointer select-none text-slate-800 dark:text-slate-200">Stato: <span class="text-gray-400 font-normal">Già Pagata?</span></label>
-                        <input type="checkbox" id="exp-status" class="w-6 h-6 rounded-lg text-blue-600 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-500 focus:ring-offset-0 focus:ring-0 cursor-pointer shadow-sm">
+                    <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2 transition-colors cursor-pointer" onclick="document.getElementById('exp-status').click()">
+                        <label class="font-bold cursor-pointer select-none text-slate-950">Stato: <span class="text-gray-400 font-normal">Già Pagata?</span></label>
+                        <input type="checkbox" id="exp-status" class="w-6 h-6 rounded-lg text-blue-600 bg-white border-slate-300 focus:ring-offset-0 focus:ring-0 cursor-pointer shadow-inner">
                     </div>
                 </div>
 
-                <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 dark:border-slate-700 shrink-0">
-                    <button id="btn-delete" onclick="deleteExpense()" class="hidden px-5 py-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition transform active:scale-95"><i class="fas fa-trash"></i></button>
-                    <button onclick="saveExpense()" class="flex-1 py-4 bg-gradient-to-r from-slate-800 to-slate-900 dark:from-blue-600 dark:to-blue-700 text-white font-bold rounded-2xl shadow-xl hover:shadow-2xl transition transform active:scale-95 text-lg">Salva Spesa</button>
+                <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 shrink-0">
+                    <button id="btn-delete" onclick="deleteExpense()" class="hidden px-5 py-4 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition transform active:scale-95"><i class="fas fa-trash"></i></button>
+                    <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-950 text-white font-bold rounded-2xl shadow-xl hover:bg-slate-800 transition transform active:scale-95 text-lg">Salva Spesa</button>
                 </div>
             </div>
         </div>
@@ -244,26 +218,6 @@
         let expenses = [];
         let currentCycleDate = new Date();
         let currentExpDateType = 'exact';
-
-        function toggleTheme() {
-            const html = document.documentElement;
-            const icon = document.getElementById('theme-icon');
-            if (html.classList.contains('dark')) {
-                html.classList.remove('dark');
-                localStorage.setItem('theme', 'light');
-                icon.className = 'fas fa-moon';
-            } else {
-                html.classList.add('dark');
-                localStorage.setItem('theme', 'dark');
-                icon.className = 'fas fa-sun';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const icon = document.getElementById('theme-icon');
-            if (document.documentElement.classList.contains('dark')) icon.className = 'fas fa-sun';
-            else icon.className = 'fas fa-moon';
-        });
 
         document.getElementById('btn-verify-pin').addEventListener('click', unlockWithPin);
         document.getElementById('pin-input').addEventListener('keypress', e => { if (e.key === 'Enter') unlockWithPin(); });
@@ -384,20 +338,16 @@
                     displayDate = `${parts[2]}/${parts[1]}`;
                 }
 
-                const colorClass = isPaid ? 'text-slate-400 dark:text-slate-500 line-through' : 'text-red-600 dark:text-red-400';
-                const descClass = isPaid ? 'text-slate-400 dark:text-slate-500 line-through opacity-70' : 'text-red-600 dark:text-red-400';
+                const colorClass = isPaid ? 'text-slate-950 line-through' : 'text-red-600';
+                const descClass = isPaid ? 'text-slate-950 line-through opacity-70' : 'text-red-600';
                 
-                // Stili Premium per i Riquadri (Glassmorphism e Bordi Laterali)
-                const borderClass = isPaid ? 'border-l-4 border-l-slate-300 dark:border-l-slate-600 border-y border-r border-white/40 dark:border-slate-700/50' : 'border-l-4 border-l-red-500 dark:border-l-red-500 border-y border-r border-white/60 dark:border-slate-700/80';
-                const bgClass = isPaid ? 'bg-white/40 dark:bg-slate-800/40' : 'bg-gradient-to-br from-white/90 to-white/70 dark:from-slate-800/90 dark:to-slate-800/70';
-                const shadowClass = isPaid ? 'shadow-sm' : 'shadow-[0_8px_30px_rgb(239,68,68,0.1)] dark:shadow-[0_8px_30px_rgb(239,68,68,0.05)]';
-                
+                const shadowClass = 'shadow-lg hover:shadow-xl hover:-translate-y-1';
                 const staggerClass = `stagger-${(index % 5) + 1}`;
 
                 return `
-                <div onclick="openExpenseModal('${e.id}')" class="animate-fade-in-up ${staggerClass} ${bgClass} ${borderClass} ${shadowClass} backdrop-blur-md p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 active:scale-95 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <div onclick="openExpenseModal('${e.id}')" class="animate-fade-in-up ${staggerClass} ${shadowClass} bg-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 transition-all duration-300 cursor-pointer border border-slate-100">
                     <div class="flex justify-between items-center w-full sm:w-auto">
-                        <div class="text-xs font-bold text-gray-500 dark:text-gray-400 whitespace-nowrap bg-slate-100/80 dark:bg-slate-700/80 px-3 py-1.5 rounded-lg transition-colors">
+                        <div class="text-xs font-bold text-gray-500 whitespace-nowrap bg-slate-100 px-3 py-1.5 rounded-lg">
                             ${displayDate}
                         </div>
                         <div class="font-black text-xl sm:hidden ${colorClass}">
@@ -417,7 +367,7 @@
 
             document.getElementById('cycle-paid').textContent = `€ ${paid.toFixed(2)}`;
             document.getElementById('cycle-pending').textContent = `€ ${pending.toFixed(2)}`;
-            document.getElementById('cycle-list').innerHTML = listHtml || '<p class="text-center text-gray-400 dark:text-gray-500 text-sm py-10 animate-fade-in-up">Nessuna spesa in questo ciclo.</p>';
+            document.getElementById('cycle-list').innerHTML = listHtml || '<p class="text-center text-gray-400 text-sm py-10 animate-fade-in-up">Nessuna spesa in questo ciclo.</p>';
         }
 
         function toggleRecurrenceValue() {
@@ -510,12 +460,12 @@
             const iMonth = document.getElementById('exp-date-month');
 
             if(type === 'exact') {
-                bExact.className = 'py-2.5 text-sm font-bold rounded-xl bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 transition-all';
-                bMonth.className = 'py-2.5 text-sm font-bold rounded-xl text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all';
+                bExact.className = 'py-2.5 text-sm font-bold rounded-xl bg-white shadow-md text-blue-600 transition-all border border-slate-100';
+                bMonth.className = 'py-2.5 text-sm font-bold rounded-xl text-gray-500 hover:bg-slate-100 transition-all';
                 iExact.classList.remove('hidden'); iMonth.classList.add('hidden');
             } else {
-                bMonth.className = 'py-2.5 text-sm font-bold rounded-xl bg-white dark:bg-slate-700 shadow-sm text-blue-600 dark:text-blue-400 transition-all';
-                bExact.className = 'py-2.5 text-sm font-bold rounded-xl text-gray-500 dark:text-gray-400 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all';
+                bMonth.className = 'py-2.5 text-sm font-bold rounded-xl bg-white shadow-md text-blue-600 transition-all border border-slate-100';
+                bExact.className = 'py-2.5 text-sm font-bold rounded-xl text-gray-500 hover:bg-slate-100 transition-all';
                 iMonth.classList.remove('hidden'); iExact.classList.add('hidden');
             }
         }
