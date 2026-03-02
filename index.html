@@ -58,9 +58,9 @@
         .stagger-5 { animation-delay: 250ms; }
     </style>
 </head>
-<body class="text-slate-800 h-screen flex flex-col items-center justify-center overflow-hidden relative bg-white">
+<body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden relative bg-white">
 
-    <div id="auth-screen" class="w-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center bg-white transition-all duration-500">
+    <div id="auth-screen" class="w-full h-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center bg-white transition-all duration-500">
         <img src="MLogo.webp" alt="FinPe Light Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=F';">
         <h1 class="font-black text-5xl mb-12 text-slate-950 animate-fade-in-up stagger-1 tracking-tight flex items-center justify-center gap-2">
             FinPe <span class="font-cursive text-gray-400 font-bold text-5xl lowercase tracking-normal mt-2">light</span>
@@ -77,7 +77,7 @@
         <p id="auth-msg" class="text-red-500 text-sm mt-6 hidden font-medium bg-red-50 px-4 py-2 rounded-lg"></p>
     </div>
 
-    <div id="firebase-login-screen" class="hidden w-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center bg-white/95 backdrop-blur-sm">
+    <div id="firebase-login-screen" class="hidden w-full h-full px-6 flex-col items-center text-center z-40 absolute inset-0 justify-center bg-white/95 backdrop-blur-sm">
         <div class="w-full max-w-sm bg-white p-8 rounded-[2rem] shadow-2xl border border-slate-100">
             <h2 class="font-black text-3xl mb-2 text-slate-950 tracking-tight">Cloud Sync</h2>
             <p class="text-sm font-medium text-gray-500 mb-8">Connessione sicura al database.</p>
@@ -102,7 +102,7 @@
             </div>
         </header>
         
-        <main class="flex-1 overflow-y-auto relative pb-28 hide-scrollbar bg-slate-50/50">
+        <main class="flex-1 overflow-y-auto relative pb-32 hide-scrollbar bg-slate-50/50 w-full">
             <div class="p-4 sm:p-6 space-y-6 max-w-2xl mx-auto">
                 
                 <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-lg border border-slate-100 animate-fade-in-up">
@@ -129,7 +129,7 @@
             </div>
         </main>
 
-        <button onclick="openExpenseModal()" class="absolute bottom-8 right-8 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center text-2xl z-20 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 active:translate-y-0 transition-all duration-300 animate-bounce-slight border border-white/20">
+        <button onclick="openExpenseModal()" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-16 h-16 bg-blue-600 text-white rounded-2xl shadow-lg shadow-blue-500/30 flex items-center justify-center text-2xl z-20 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-500/40 active:scale-95 active:translate-y-0 transition-all duration-300 animate-bounce-slight border border-white/20">
             <i class="fas fa-plus"></i>
         </button>
 
@@ -195,10 +195,10 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2 transition-colors cursor-pointer" onclick="document.getElementById('exp-status').click()">
-                        <label class="font-bold cursor-pointer select-none text-slate-950">Stato: <span class="text-gray-400 font-normal">Già Pagata?</span></label>
+                    <label class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 mt-2 transition-colors cursor-pointer w-full">
+                        <span class="font-bold select-none text-slate-950">Stato: <span class="text-gray-400 font-normal">Già Pagata?</span></span>
                         <input type="checkbox" id="exp-status" class="w-6 h-6 rounded-lg text-blue-600 bg-white border-slate-300 focus:ring-offset-0 focus:ring-0 cursor-pointer shadow-inner">
-                    </div>
+                    </label>
                 </div>
 
                 <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 shrink-0">
@@ -328,16 +328,42 @@
             const cycle = getCycleDates(currentCycleDate);
             document.getElementById('cycle-label').textContent = cycle.label;
             
-            const filtered = expenses.filter(e => {
-                let expDateStr = e.dateType === 'month' ? `${e.date}-01` : e.date;
-                return expDateStr >= cycle.startStr && expDateStr <= cycle.endStr;
-            }).sort((a,b) => (a.date > b.date ? 1 : -1));
-
             let paid = 0, pending = 0;
-            const listHtml = filtered.map((e, index) => {
-                if(e.status === 'paid') paid += e.amount; else pending += e.amount;
-                const isPaid = e.status === 'paid';
+            
+            // Array separati per mantenere l'ordine esatto: Scadute -> Da Pagare (Mese) -> Pagate
+            const overdueExps = [];
+            const currentPendingExps = [];
+            const currentPaidExps = [];
+
+            expenses.forEach(e => {
+                let expDateStr = e.dateType === 'month' ? `${e.date}-01` : e.date;
                 
+                // Se la data è precedente al ciclo ed è da pagare -> SCADUTA
+                if (expDateStr < cycle.startStr && e.status === 'pending') {
+                    overdueExps.push(e);
+                    pending += e.amount; // Sommiamo le scadute nel totale da pagare
+                } 
+                // Se è nel ciclo attuale
+                else if (expDateStr >= cycle.startStr && expDateStr <= cycle.endStr) {
+                    if (e.status === 'pending') {
+                        currentPendingExps.push(e);
+                        pending += e.amount;
+                    } else {
+                        currentPaidExps.push(e);
+                        paid += e.amount;
+                    }
+                }
+            });
+
+            // Ordinamento per data crescente all'interno di ogni blocco
+            const sortByDate = (a, b) => (a.date > b.date ? 1 : -1);
+            overdueExps.sort(sortByDate);
+            currentPendingExps.sort(sortByDate);
+            currentPaidExps.sort(sortByDate);
+
+            let globalIndex = 0;
+
+            const renderItem = (e, type) => {
                 let displayDate = "";
                 if (e.dateType === 'month') {
                     const parts = e.date.split('-');
@@ -347,18 +373,38 @@
                     displayDate = `${parts[2]}/${parts[1]}`;
                 }
 
-                // Inversione Colori secondo indicazioni (Rosso da pagare, Nero pagato)
-                const colorClass = isPaid ? 'text-slate-950 line-through' : 'text-red-600';
-                const descClass = isPaid ? 'text-slate-950 line-through opacity-70' : 'text-red-600';
-                
+                let colorClass = '';
+                let descClass = '';
+                let containerBg = 'bg-white';
+                let pillBg = 'bg-slate-100 text-gray-500';
+                let extraBadge = '';
+
+                if (type === 'overdue') {
+                    colorClass = 'text-red-700';
+                    descClass = 'text-red-700';
+                    containerBg = 'bg-red-50 border-red-100'; // Sfondo rosso chiaro
+                    pillBg = 'bg-white/80 text-red-800'; 
+                    extraBadge = `<span class="text-[10px] bg-red-600 text-white font-bold px-2 py-0.5 rounded-md ml-2 uppercase tracking-wider shadow-sm">Scaduta</span>`;
+                } else if (type === 'current-pending') {
+                    colorClass = 'text-red-600';
+                    descClass = 'text-red-600';
+                } else if (type === 'current-paid') {
+                    colorClass = 'text-slate-950 line-through';
+                    descClass = 'text-slate-950 line-through opacity-70';
+                }
+
                 const shadowClass = 'shadow-lg hover:shadow-xl hover:-translate-y-1';
-                const staggerClass = `stagger-${(index % 5) + 1}`;
+                const staggerClass = `stagger-${(globalIndex % 5) + 1}`;
+                globalIndex++;
 
                 return `
-                <div onclick="openExpenseModal('${e.id}')" class="animate-fade-in-up ${staggerClass} ${shadowClass} bg-white p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 transition-all duration-300 cursor-pointer border border-slate-100">
+                <div onclick="openExpenseModal('${e.id}')" class="animate-fade-in-up ${staggerClass} ${shadowClass} ${containerBg} p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 transition-all duration-300 cursor-pointer border border-slate-100">
                     <div class="flex justify-between items-center w-full sm:w-auto">
-                        <div class="text-xs font-bold text-gray-500 whitespace-nowrap bg-slate-100 px-3 py-1.5 rounded-lg">
-                            ${displayDate}
+                        <div class="flex items-center">
+                            <div class="text-xs font-bold whitespace-nowrap ${pillBg} px-3 py-1.5 rounded-lg border border-slate-200/50">
+                                ${displayDate}
+                            </div>
+                            ${extraBadge}
                         </div>
                         <div class="font-black text-xl sm:hidden ${colorClass}">
                             € ${e.amount.toFixed(2)}
@@ -373,7 +419,12 @@
                         € ${e.amount.toFixed(2)}
                     </div>
                 </div>`;
-            }).join('');
+            };
+
+            let listHtml = '';
+            overdueExps.forEach(e => { listHtml += renderItem(e, 'overdue'); });
+            currentPendingExps.forEach(e => { listHtml += renderItem(e, 'current-pending'); });
+            currentPaidExps.forEach(e => { listHtml += renderItem(e, 'current-paid'); });
 
             document.getElementById('cycle-paid').textContent = `€ ${paid.toFixed(2)}`;
             document.getElementById('cycle-pending').textContent = `€ ${pending.toFixed(2)}`;
