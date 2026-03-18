@@ -191,8 +191,8 @@
                             <div class="text-2xl font-black text-slate-950" id="weekly-avg-kcal">0</div>
                         </div>
                         <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                            <div class="text-[10px] font-bold text-gray-500 uppercase">Acqua Totale</div>
-                            <div class="text-2xl font-black text-blue-600" id="weekly-total-water">0 L</div>
+                            <div class="text-[10px] font-bold text-gray-500 uppercase">Media Acqua/gg</div>
+                            <div class="text-2xl font-black text-blue-600" id="weekly-avg-water">0 L</div>
                         </div>
                     </div>
 
@@ -691,9 +691,10 @@
 
             const daysTracked = statsSnap.size || 1;
             const avgKcal = Math.round(sumKcal / daysTracked);
+            const avgWater = totalWater / daysTracked;
 
             document.getElementById('weekly-avg-kcal').textContent = avgKcal;
-            document.getElementById('weekly-total-water').textContent = (totalWater / 1000).toFixed(2) + " L";
+            document.getElementById('weekly-avg-water').textContent = (avgWater / 1000).toFixed(2) + " L";
             
             document.getElementById('weekly-d3').textContent = `${d3Count}/7`;
             document.getElementById('weekly-a1').textContent = `${a1Count}/7`;
