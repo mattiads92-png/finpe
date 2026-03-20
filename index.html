@@ -8,8 +8,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="MLogo.png">
-    <link rel="icon" type="image/jpeg" href="MLogo.png">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
+    
+    <link rel="manifest" href="manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -69,7 +71,7 @@
 <body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden relative bg-white">
 
     <div id="auth-screen" class="w-full h-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center bg-white transition-all duration-500">
-        <img src="MLogo.png" alt="Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=G';">
+        <img src="logo.jpg" alt="Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=G';">
         <h1 class="font-black text-5xl mb-12 text-slate-950 animate-fade-in-up tracking-tight flex items-center justify-center gap-2">
             Gestionale
         </h1>
@@ -83,7 +85,7 @@
         
         <header class="p-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 animate-slide-down">
             <div class="flex items-center gap-3">
-                <img src="MLogo.png" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-slate-100" onerror="this.style.display='none';">
+                <img src="logo.jpg" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-slate-100" onerror="this.style.display='none';">
                 <h2 id="section-title" class="font-black text-2xl tracking-tight text-slate-950 flex items-center gap-1">
                     Finanza
                 </h2>
@@ -244,6 +246,9 @@
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase block mb-1">Alimento</label>
                         <select id="diet-food" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none" onchange="checkFoodUnit()"></select>
+                        <button type="button" onclick="openCustomFoodModal()" class="w-full py-2 mt-2 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-emerald-200">
+                            <i class="fas fa-plus"></i> Aggiungi nuovo alimento
+                        </button>
                     </div>
                     <div>
                         <label id="diet-unit-label" class="text-xs font-bold text-gray-500 uppercase block mb-1">Quantità (Grammi)</label>
@@ -251,6 +256,43 @@
                     </div>
                     <button onclick="saveDietLog()" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition text-lg mt-2">
                         Salva Pasto
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="custom-food-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
+            <div class="bg-white rounded-[2rem] p-6 shadow-2xl w-full max-w-sm border border-slate-100">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-black text-xl text-slate-950">Nuovo Alimento</h3>
+                    <button onclick="closeCustomFoodModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="space-y-3">
+                    <div>
+                        <input type="text" id="cf-name" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Nome alimento (es. Mela)">
+                    </div>
+                    <div>
+                        <select id="cf-group" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm bg-slate-50">
+                            <option value="COLAZIONE">Menu Colazione</option>
+                            <option value="CARNE">Carne</option>
+                            <option value="PESCE">Pesce</option>
+                            <option value="VERDURA">Verdura</option>
+                            <option value="UOVA">Uova</option>
+                            <option value="CONDIMENTI">Condimenti</option>
+                            <option value="ALTRO">Altro (Nuova Categoria)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="cf-kcal" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Kcal">
+                        <input type="number" id="cf-c" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Carbo (g)">
+                        <input type="number" id="cf-p" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Proteine (g)">
+                        <input type="number" id="cf-f" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Grassi (g)">
+                    </div>
+                    <p class="text-[9px] text-gray-400 font-bold text-center uppercase">Inserisci i valori per 100g (o per 1 pezzo)</p>
+                    <button onclick="saveCustomFood()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-sm mt-2">
+                        Salva nel Database
                     </button>
                 </div>
             </div>
@@ -368,9 +410,6 @@
                 </div>
                 
                 <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 shrink-0">
-                    <button id="btn-delete-exp" onclick="deleteExpense()" class="hidden px-5 py-4 bg-red-50 text-red-600 rounded-2xl active:scale-95 transition">
-                        <i class="fas fa-trash"></i>
-                    </button>
                     <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-950 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition">
                         Salva
                     </button>
@@ -423,14 +462,14 @@
         let dailyChartInstance = null;
         let weeklyChartInstance = null;
         
-        // Nuove variabili globali per la Dieta Navigabile
         let currentDietDate = new Date();
         let dietStatsUnsubscribe = null;
         let dietLogsUnsubscribe = null;
-        let currentAnalysisMode = 'all'; // può essere 'all' o '7d'
+        let customFoodsUnsubscribe = null;
+        let currentAnalysisMode = 'all';
 
-        // DATABASE NUTRIZIONALE (Valori stimati per 100g, eccetto uova calcolate per 1 pezzo medio)
-        const NUTRITION_DB = {
+        // PUNTO B: Database Nutrizionale Base (ora modificabile dinamicamente)
+        const BASE_NUTRITION_DB = {
             "Pane Semintegrale Tostato": { kcal: 250, c: 45, p: 8, f: 3 },
             "Salmone Affumicato": { kcal: 117, c: 0, p: 18, f: 4 },
             "Bresaola": { kcal: 151, c: 0, p: 32, f: 2.6 },
@@ -479,29 +518,20 @@
             "sale": { kcal: 0, c: 0, p: 0, f: 0 }
         };
 
-        const FOODS_GROUPS = {
-            "CARNE": [
-                "pollo", "tacchino", "coniglio", "maiale", "manzo", "vitello"
-            ],
-            "PESCE": [
-                "salmone fresco", "salmone affumicato", "salmone scatola sott'olio", 
-                "platessa", "tonno fresco", "tonno scatola sott'olio (130g)", 
-                "merluzzo", "sogliole", "ombrina", "palombo", "orata", "spigola", 
-                "gamberetti", "scampi", "mazzancolle", "gamberoni", "branzino", 
-                "nasello", "ricciola", "seppie", "calamari", "totani", "polpo", 
-                "vongole", "cozze"
-            ],
-            "UOVA": [
-                "uova"
-            ],
-            "VERDURA": [
-                "sedano", "carciofi", "finocchi", "zucchine", "spinaci", "zucca", 
-                "broccoletti", "asparagi", "piselli", "carota"
-            ],
-            "CONDIMENTI": [
-                "olio", "sale"
-            ]
+        const BASE_FOODS_GROUPS = {
+            "CARNE": ["pollo", "tacchino", "coniglio", "maiale", "manzo", "vitello"],
+            "PESCE": ["salmone fresco", "salmone affumicato", "salmone scatola sott'olio", "platessa", "tonno fresco", "tonno scatola sott'olio (130g)", "merluzzo", "sogliole", "ombrina", "palombo", "orata", "spigola", "gamberetti", "scampi", "mazzancolle", "gamberoni", "branzino", "nasello", "ricciola", "seppie", "calamari", "totani", "polpo", "vongole", "cozze"],
+            "UOVA": ["uova"],
+            "VERDURA": ["sedano", "carciofi", "finocchi", "zucchine", "spinaci", "zucca", "broccoletti", "asparagi", "piselli", "carota"],
+            "CONDIMENTI": ["olio", "sale"]
         };
+        
+        const BASE_FOODS_COLAZIONE = ["Pane Semintegrale Tostato", "Salmone Affumicato", "Bresaola"];
+
+        // Variabili dinamiche che conterranno anche i cibi personalizzati
+        let NUTRITION_DB = JSON.parse(JSON.stringify(BASE_NUTRITION_DB));
+        let FOODS_GROUPS = JSON.parse(JSON.stringify(BASE_FOODS_GROUPS));
+        let FOODS_COLAZIONE = [...BASE_FOODS_COLAZIONE];
 
         // --- AUTENTICAZIONE E AVVIO ---
         document.getElementById('btn-verify-pin').addEventListener('click', () => {
@@ -532,13 +562,37 @@
             
             const uid = auth.currentUser.uid;
 
-            // Inizializzazione Listener Finanze
+            // Listener Finanze
             db.collection('users').doc(uid).collection('expenses_light').onSnapshot(snapshot => {
                 expenses = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
                 renderCycle();
             });
 
-            // Avvio caricamento dati Dieta per la data corrente
+            // PUNTO B: Listener Alimenti Personalizzati
+            customFoodsUnsubscribe = db.collection('users').doc(uid).collection('custom_foods').onSnapshot(snapshot => {
+                // Resettiamo ai valori base
+                NUTRITION_DB = JSON.parse(JSON.stringify(BASE_NUTRITION_DB));
+                FOODS_GROUPS = JSON.parse(JSON.stringify(BASE_FOODS_GROUPS));
+                FOODS_COLAZIONE = [...BASE_FOODS_COLAZIONE];
+
+                // Aggiungiamo i personalizzati
+                snapshot.docs.forEach(doc => {
+                    let data = doc.data();
+                    NUTRITION_DB[data.name] = { kcal: data.kcal, c: data.c, p: data.p, f: data.f };
+                    
+                    if (data.group === 'COLAZIONE') {
+                        FOODS_COLAZIONE.push(data.name);
+                    } else {
+                        if(!FOODS_GROUPS[data.group]) FOODS_GROUPS[data.group] = [];
+                        FOODS_GROUPS[data.group].push(data.name);
+                    }
+                });
+                
+                // Aggiorno a schermo nel caso fossimo dentro la modale
+                updateFoodSelect();
+            });
+
+            // Caricamento Dieta 
             loadDietDataForDate(currentDietDate);
         }
 
@@ -640,12 +694,18 @@
                 const amountColorClass = e.status === 'paid' ? 'text-gray-500' : (isOverdueItem ? 'text-red-600' : 'text-blue-600');
                 const overdueBadge = isOverdueItem ? `<span class="bg-red-100 text-red-700 text-[9px] font-black px-2 py-0.5 rounded ml-2 uppercase">Scaduta</span>` : '';
                 
+                // PUNTO C: Cestino Rapido per le Spese (con stopPropagation)
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="text-[10px] font-bold bg-slate-100 text-gray-500 px-2 py-1 rounded-lg">${displayDate}</div>
                         <div class="${descColorClass}">${e.desc}${overdueBadge}</div>
                     </div>
-                    <div class="font-black text-xl ${amountColorClass}">€ ${e.amount.toFixed(2)}</div>
+                    <div class="flex items-center gap-3">
+                        <div class="font-black text-xl ${amountColorClass}">€ ${e.amount.toFixed(2)}</div>
+                        <button onclick="event.stopPropagation(); deleteExpenseRapido('${e.id}')" class="text-slate-300 hover:text-red-500 active:scale-90 transition p-1">
+                            <i class="fas fa-trash-can"></i>
+                        </button>
+                    </div>
                 `;
                 
                 container.appendChild(div);
@@ -657,6 +717,13 @@
             
             document.getElementById('cycle-pending').textContent = `€ ${pendingTotal.toFixed(2)}`;
             document.getElementById('cycle-paid').textContent = `€ ${paidTotal.toFixed(2)}`;
+        }
+
+        // FUNZIONE PUNTO C
+        async function deleteExpenseRapido(id) {
+            if(confirm("Sei sicuro di voler eliminare questa spesa?")) {
+                await db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').doc(id).delete(); 
+            }
         }
 
         function setExpDateType(type) { 
@@ -686,17 +753,14 @@
             modal.classList.add('flex');
             setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10);
             
-            const delBtn = document.getElementById('btn-delete-exp');
-            
             if(id) { 
                 const e = expenses.find(x => x.id === id); 
                 document.getElementById('modal-title').textContent = "Modifica Spesa";
                 document.getElementById('exp-id').value = e.id; 
-                document.getElementById('exp-old-status').value = e.status; // Mi salvo lo stato precedente
+                document.getElementById('exp-old-status').value = e.status; 
                 document.getElementById('exp-desc').value = e.desc; 
                 document.getElementById('exp-amount').value = e.amount; 
                 
-                // Adatta al nuovo sistema di valori
                 document.getElementById('exp-recurrence-unit').value = e.recurrenceUnit || (e.recurrence && e.recurrence !== 'none' ? e.recurrence : 'none');
                 document.getElementById('exp-recurrence-val').value = e.recurrenceVal || 1;
                 
@@ -709,8 +773,6 @@
                 } else {
                     document.getElementById('exp-date-exact').value = e.date;
                 }
-                
-                delBtn.classList.remove('hidden');
             } else { 
                 document.getElementById('modal-title').textContent = "Nuova Spesa";
                 document.getElementById('exp-id').value = ''; 
@@ -722,8 +784,6 @@
                 document.getElementById('exp-recurrence-val').value = '1';
                 
                 document.getElementById('exp-status').checked = false; 
-                
-                delBtn.classList.add('hidden');
             }
         }
 
@@ -736,7 +796,6 @@
             }, 300); 
         }
 
-        // Helper per sommare numeri personalizzati aggirando i fusi orari
         function calcNextRecurrence(dateStr, unit, val, dateType) {
             val = parseInt(val) || 1;
             if (dateType === 'exact') {
@@ -792,67 +851,47 @@
             let shouldClone = false;
 
             if(id) {
-                // Se la spesa esisteva, era "da pagare" e ora la sto salvando come "pagata" + ha una ricorrenza attiva -> Duplico
                 if (oldStatus === 'pending' && newStatus === 'paid' && recurrenceUnit !== 'none') {
                     shouldClone = true;
                 }
                 await collectionRef.doc(id).update(dataToSave);
             } else {
-                // Se creo una spesa nuova già spuntata come "Pagata" + ricorrenza -> Duplico subito la successiva
                 if (newStatus === 'paid' && recurrenceUnit !== 'none') {
                     shouldClone = true;
                 }
                 await collectionRef.add(dataToSave);
             }
 
-            // CREAZIONE AUTOMATICA SPESA SUCCESSIVA
             if (shouldClone) {
                 const nextDateStr = calcNextRecurrence(expDate, recurrenceUnit, recurrenceVal, currentExpDateType);
-                
                 const clonedData = {
                     ...dataToSave,
-                    status: 'pending', // La nuova deve ovviamente nascere come da pagare
+                    status: 'pending',
                     date: nextDateStr
                 };
-                
                 await collectionRef.add(clonedData);
             }
             
             closeExpenseModal();
         }
-        
-        async function deleteExpense() { 
-            if(confirm("Sei sicuro di voler eliminare questa spesa?")) {
-                const idToDelete = document.getElementById('exp-id').value;
-                await db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').doc(idToDelete).delete(); 
-                closeExpenseModal(); 
-            }
-        }
-
 
         // --- LOGICA DIETA E ANALISI ---
-
-        // Helper per ottenere la stringa YYYY-MM-DD dalla data selezionata (evitando sballamenti di fuso orario)
         function getDateString(dateObj) {
             return new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
         }
 
-        // Funzione per navigare i giorni
         function changeDietDay(direction) {
             currentDietDate.setDate(currentDietDate.getDate() + direction);
             loadDietDataForDate(currentDietDate);
         }
 
-        // Caricamento Dati Dieta Dinamico
         function loadDietDataForDate(dateObj) {
             const uid = auth.currentUser.uid;
             const dateStr = getDateString(dateObj);
 
-            // Stacco i listener vecchi se esistono (per non ascoltare giorni passati in background)
             if (dietStatsUnsubscribe) dietStatsUnsubscribe();
             if (dietLogsUnsubscribe) dietLogsUnsubscribe();
 
-            // Aggiorno Titolo UI
             const todayStr = getDateString(new Date());
             const opzioniData = { weekday: 'long', day: 'numeric', month: 'long' };
             
@@ -862,7 +901,6 @@
                 document.getElementById('diet-today').textContent = dateObj.toLocaleDateString('it-IT', opzioniData);
             }
 
-            // Riattacco per il giorno attualmente selezionato
             dietStatsUnsubscribe = db.collection('users').doc(uid).collection('daily_stats').doc(dateStr).onSnapshot(doc => {
                 dailyStats = doc.exists ? doc.data() : { water: 0, d3: false, antio1_col: false, antio1_pra: false, antio2: false };
                 updateDietUI();
@@ -936,11 +974,11 @@
             const tipoPasto = document.getElementById('diet-type').value;
             const selettoreCibo = document.getElementById('diet-food'); 
             
+            const currentVal = selettoreCibo.value; // Salvo il valore corrente per non perderlo se aggiorno
             selettoreCibo.innerHTML = ''; 
             
             if (tipoPasto === "Colazione") {
-                const cibiColazione = ["Pane Semintegrale Tostato", "Salmone Affumicato", "Bresaola"];
-                cibiColazione.forEach(cibo => {
+                FOODS_COLAZIONE.forEach(cibo => {
                     const opzione = document.createElement('option'); 
                     opzione.value = cibo; 
                     opzione.textContent = cibo; 
@@ -961,7 +999,10 @@
                     selettoreCibo.appendChild(optgroup);
                 }
             }
-            // Aggiorna la dicitura Grammi/Numero in base all'alimento selezionato
+
+            if(currentVal && Array.from(selettoreCibo.options).some(opt => opt.value === currentVal)) {
+                selettoreCibo.value = currentVal;
+            }
             checkFoodUnit();
         }
 
@@ -997,6 +1038,53 @@
             document.getElementById('diet-grams').value = '';
         }
 
+        // PUNTO B: Funzioni per il Modulo Alimenti Personalizzati
+        function openCustomFoodModal() {
+            closeDietModal();
+            const modal = document.getElementById('custom-food-modal'); 
+            modal.classList.remove('hidden'); 
+            modal.classList.add('flex'); 
+            setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10); 
+        }
+
+        function closeCustomFoodModal() {
+            const modal = document.getElementById('custom-food-modal'); 
+            modal.classList.replace('opacity-100', 'opacity-0'); 
+            setTimeout(() => { 
+                modal.classList.add('hidden'); 
+                modal.classList.remove('flex'); 
+                // Pulisco i campi
+                document.getElementById('cf-name').value = '';
+                document.getElementById('cf-kcal').value = '';
+                document.getElementById('cf-c').value = '';
+                document.getElementById('cf-p').value = '';
+                document.getElementById('cf-f').value = '';
+            }, 300);
+        }
+
+        async function saveCustomFood() {
+            const name = document.getElementById('cf-name').value.trim();
+            const group = document.getElementById('cf-group').value;
+            const kcal = parseFloat(document.getElementById('cf-kcal').value) || 0;
+            const c = parseFloat(document.getElementById('cf-c').value) || 0;
+            const p = parseFloat(document.getElementById('cf-p').value) || 0;
+            const f = parseFloat(document.getElementById('cf-f').value) || 0;
+            
+            if(!name) return alert("Inserisci il nome dell'alimento.");
+
+            await db.collection('users').doc(auth.currentUser.uid).collection('custom_foods').add({
+                name: name,
+                group: group,
+                kcal: kcal,
+                c: c,
+                p: p,
+                f: f
+            });
+            
+            closeCustomFoodModal();
+            setTimeout(() => openDietModal(), 350); // Riapro la modale dei pasti per continuare
+        }
+
         async function saveDietLog() {
             const mealSelected = document.getElementById('diet-type').value;
             const foodName = document.getElementById('diet-food').value;
@@ -1009,7 +1097,6 @@
             const foodKeyInDb = Object.keys(NUTRITION_DB).find(k => k.toLowerCase() === foodName.toLowerCase());
             const nutritionValues = NUTRITION_DB[foodKeyInDb] || { kcal: 0, c: 0, p: 0, f: 0 };
             
-            // Se sono uova, il database ha i valori di 1 uovo. Altrimenti sono i valori di 100g.
             const multiplier = foodName.toLowerCase() === 'uova' ? gramsInput : (gramsInput / 100);
             const notesStr = foodName.toLowerCase() === 'uova' ? `${foodName} (${gramsInput} pz)` : `${foodName} (${gramsInput}g)`;
             
@@ -1099,7 +1186,6 @@
                 });
             }
 
-            // Calcolo percentuali per i macronutrienti giornalieri
             const totalMacros = totalCarbs + totalProteins + totalFats;
             const percC = totalMacros > 0 ? Math.round((totalCarbs / totalMacros) * 100) : 0;
             const percP = totalMacros > 0 ? Math.round((totalProteins / totalMacros) * 100) : 0;
@@ -1123,7 +1209,6 @@
             }
         }
 
-        // Funzione per generare il grafico a Torta (condivisa tra daily e weekly)
         function updateChart(canvasId, carbs, proteins, fats, istanzaPrecedente, callbackSalvataggio) {
             const canvasElement = document.getElementById(canvasId);
             if (!canvasElement) return;
@@ -1178,7 +1263,6 @@
             const uid = auth.currentUser.uid;
             let dataInizioStr = null;
 
-            // Se l'utente seleziona "Ultimi 7 gg", stabiliamo la finestra temporale (ultimi 7 giorni solari)
             if (currentAnalysisMode === '7d') {
                 const d = new Date();
                 d.setDate(d.getDate() - 6);
@@ -1193,20 +1277,17 @@
                 queryPastiRef = queryPastiRef.where('date', '>=', dataInizioStr);
             }
 
-            // Eseguo le query
             const [queryStats, queryPasti] = await Promise.all([queryStatsRef.get(), queryPastiRef.get()]);
             
             let sumWater = 0;
             let counterD3 = 0, counterA1Col = 0, counterA1Pra = 0, counterA2 = 0;
             
-            // Creiamo un "cesto" (Set) per memorizzare in quali date c'è stato effettivamente un inserimento
             const giorniAttivi = new Set();
             
             queryStats.forEach(doc => {
                 const data = doc.data();
                 const hasStats = data.water > 0 || data.d3 || data.antio1_col || data.antio1_pra || data.antio2;
                 
-                // Se c'è almeno un dato registrato per questa data, la mettiamo nel Set
                 if (hasStats) {
                     giorniAttivi.add(doc.id);
                 }
@@ -1232,14 +1313,12 @@
                     sumP += mac.p; 
                     sumF += mac.f; 
                     
-                    // Se ha inserito macronutrienti > 0, consideriamo il giorno attivo
                     if (mac.kcal > 0 || mac.c > 0 || mac.p > 0 || mac.f > 0) {
                         giorniAttivi.add(data.date);
                     }
                 }
             });
 
-            // Calcolo Giorni Tracciati: se il Set è vuoto, uso 1 per evitare di dividere per zero
             const giorniTracciati = giorniAttivi.size > 0 ? giorniAttivi.size : 1;
 
             const mediaKcalGiornaliera = Math.round(sumKcal / giorniTracciati);
@@ -1252,7 +1331,6 @@
             document.getElementById('weekly-a1').textContent = `${mediaAntio1} gg`;
             document.getElementById('weekly-a2').textContent = `${counterA2} gg`;
 
-            // Calcolo percentuali macro globali
             const totalMacros = sumC + sumP + sumF;
             const percC = totalMacros > 0 ? Math.round((sumC / totalMacros) * 100) : 0;
             const percP = totalMacros > 0 ? Math.round((sumP / totalMacros) * 100) : 0;
@@ -1275,7 +1353,6 @@
             modal.classList.add('flex');
             setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10);
 
-            // Carichiamo subito i dati correnti in base alla modalità selezionata
             fetchAndRenderAnalysis();
         }
 
@@ -1286,6 +1363,15 @@
                 modal.classList.add('hidden'); 
                 modal.classList.remove('flex'); 
             }, 300);
+        }
+
+        // PUNTO A: Script per attivare il Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Service Worker registrato con successo.'))
+                    .catch(err => console.log('Registrazione Service Worker fallita:', err));
+            });
         }
 
     </script>
