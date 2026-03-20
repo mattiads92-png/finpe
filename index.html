@@ -243,10 +243,10 @@
                     </div>
                     <div>
                         <label class="text-xs font-bold text-gray-500 uppercase block mb-1">Alimento</label>
-                        <select id="diet-food" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none"></select>
+                        <select id="diet-food" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none" onchange="checkFoodUnit()"></select>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase block mb-1">Quantità (Grammi)</label>
+                        <label id="diet-unit-label" class="text-xs font-bold text-gray-500 uppercase block mb-1">Quantità (Grammi)</label>
                         <input type="number" id="diet-grams" class="w-full p-4 rounded-2xl border border-slate-200 font-black text-2xl text-emerald-600 outline-none" placeholder="Es. 150">
                     </div>
                     <button onclick="saveDietLog()" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition text-lg mt-2">
@@ -321,6 +321,7 @@
                 </div>
                 
                 <input type="hidden" id="exp-id">
+                <input type="hidden" id="exp-old-status">
                 
                 <div class="space-y-4 overflow-y-auto hide-scrollbar flex-1 pr-1">
                     <div>
@@ -421,7 +422,7 @@
         let dietLogsUnsubscribe = null;
         let currentAnalysisMode = 'all'; // può essere 'all' o '7d'
 
-        // DATABASE NUTRIZIONALE (Valori stimati per 100g)
+        // DATABASE NUTRIZIONALE (Valori stimati per 100g, eccetto uova calcolate per 1 pezzo medio)
         const NUTRITION_DB = {
             "Pane Semintegrale Tostato": { kcal: 250, c: 45, p: 8, f: 3 },
             "Salmone Affumicato": { kcal: 117, c: 0, p: 18, f: 4 },
@@ -456,6 +457,7 @@
             "scampi": { kcal: 90, c: 1, p: 18, f: 1 },
             "mazzancolle": { kcal: 95, c: 1, p: 19, f: 1 },
             "gamberoni": { kcal: 90, c: 1, p: 18, f: 1 },
+            "uova": { kcal: 70, c: 0.5, p: 6, f: 5 },
             "sedano": { kcal: 16, c: 3, p: 0.7, f: 0.2 },
             "carciofi": { kcal: 47, c: 10, p: 3, f: 0.2 },
             "finocchi": { kcal: 31, c: 7, p: 1.2, f: 0.2 },
@@ -481,6 +483,9 @@
                 "gamberetti", "scampi", "mazzancolle", "gamberoni", "branzino", 
                 "nasello", "ricciola", "seppie", "calamari", "totani", "polpo", 
                 "vongole", "cozze"
+            ],
+            "UOVA": [
+                "uova"
             ],
             "VERDURA": [
                 "sedano", "carciofi", "finocchi", "zucchine", "spinaci", "zucca", 
@@ -595,7 +600,10 @@
 
             const itemsInCycle = expenses.filter(e => {
                 let formattedDate = e.dateType === 'month' ? `${e.date}-01` : e.date;
-                return formattedDate >= cycle.startStr && formattedDate <= cycle.endStr;
+                const isCurrentCycle = formattedDate >= cycle.startStr && formattedDate <= cycle.endStr;
+                const isOverdue = formattedDate < cycle.startStr && e.status === 'pending';
+                
+                return isCurrentCycle || isOverdue;
             });
 
             itemsInCycle.sort((a, b) => {
@@ -612,18 +620,23 @@
                     paidTotal += e.amount;
                 }
                 
+                let formattedDate = e.dateType === 'month' ? `${e.date}-01` : e.date;
+                const isOverdueItem = (formattedDate < cycle.startStr) && e.status === 'pending';
+
                 const div = document.createElement('div');
-                div.className = `bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between cursor-pointer transition active:scale-[0.98] ${e.status === 'paid' ? 'opacity-60' : ''}`;
+                div.className = `bg-white p-4 rounded-2xl shadow-sm border ${isOverdueItem ? 'border-red-200' : 'border-slate-100'} flex items-center justify-between cursor-pointer transition active:scale-[0.98] ${e.status === 'paid' ? 'opacity-60' : ''}`;
                 div.onclick = () => openExpenseModal(e.id);
                 
                 const displayDate = e.date.split('-').reverse().slice(0,2).join('/');
-                const strikethroughClass = e.status === 'paid' ? 'line-through' : '';
-                const amountColorClass = e.status === 'paid' ? 'text-gray-500' : 'text-blue-600';
+                
+                const descColorClass = e.status === 'paid' ? 'line-through text-gray-400 font-bold' : (isOverdueItem ? 'text-red-600 font-bold' : 'text-slate-900 font-bold');
+                const amountColorClass = e.status === 'paid' ? 'text-gray-500' : (isOverdueItem ? 'text-red-600' : 'text-blue-600');
+                const overdueBadge = isOverdueItem ? `<span class="bg-red-100 text-red-700 text-[9px] font-black px-2 py-0.5 rounded ml-2 uppercase">Scaduta</span>` : '';
                 
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="text-[10px] font-bold bg-slate-100 text-gray-500 px-2 py-1 rounded-lg">${displayDate}</div>
-                        <div class="font-bold text-slate-900 ${strikethroughClass}">${e.desc}</div>
+                        <div class="${descColorClass}">${e.desc}${overdueBadge}</div>
                     </div>
                     <div class="font-black text-xl ${amountColorClass}">€ ${e.amount.toFixed(2)}</div>
                 `;
@@ -672,8 +685,10 @@
                 const e = expenses.find(x => x.id === id); 
                 document.getElementById('modal-title').textContent = "Modifica Spesa";
                 document.getElementById('exp-id').value = e.id; 
+                document.getElementById('exp-old-status').value = e.status; // Mi salvo lo stato precedente
                 document.getElementById('exp-desc').value = e.desc; 
                 document.getElementById('exp-amount').value = e.amount; 
+                document.getElementById('exp-recurrence-type').value = e.recurrence || 'none';
                 document.getElementById('exp-status').checked = (e.status === 'paid'); 
                 
                 setExpDateType(e.dateType || 'exact'); 
@@ -688,8 +703,10 @@
             } else { 
                 document.getElementById('modal-title').textContent = "Nuova Spesa";
                 document.getElementById('exp-id').value = ''; 
+                document.getElementById('exp-old-status').value = ''; 
                 document.getElementById('exp-desc').value = ''; 
                 document.getElementById('exp-amount').value = ''; 
+                document.getElementById('exp-recurrence-type').value = 'none';
                 document.getElementById('exp-status').checked = false; 
                 
                 delBtn.classList.add('hidden');
@@ -704,17 +721,45 @@
                 modal.classList.remove('flex'); 
             }, 300); 
         }
+
+        // Helper per sommare mesi o anni aggirando i fusi orari
+        function calcNextRecurrence(dateStr, type, dateType) {
+            if (dateType === 'exact') {
+                let [y, m, d] = dateStr.split('-');
+                let dateObj = new Date(y, m - 1, d);
+                if (type === 'm') dateObj.setMonth(dateObj.getMonth() + 1);
+                if (type === 'y') dateObj.setFullYear(dateObj.getFullYear() + 1);
+                
+                let ny = dateObj.getFullYear();
+                let nm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                let nd = String(dateObj.getDate()).padStart(2, '0');
+                return `${ny}-${nm}-${nd}`;
+            } else {
+                let [y, m] = dateStr.split('-');
+                let dateObj = new Date(y, m - 1, 1);
+                if (type === 'm') dateObj.setMonth(dateObj.getMonth() + 1);
+                if (type === 'y') dateObj.setFullYear(dateObj.getFullYear() + 1);
+                
+                let ny = dateObj.getFullYear();
+                let nm = String(dateObj.getMonth() + 1).padStart(2, '0');
+                return `${ny}-${nm}`;
+            }
+        }
         
         async function saveExpense() {
             const id = document.getElementById('exp-id').value;
+            const oldStatus = document.getElementById('exp-old-status').value;
+            const newStatus = document.getElementById('exp-status').checked ? 'paid' : 'pending';
+            const recurrenceType = document.getElementById('exp-recurrence-type').value;
+            const expDate = currentExpDateType === 'exact' ? document.getElementById('exp-date-exact').value : document.getElementById('exp-date-month').value;
             
             const dataToSave = { 
                 desc: document.getElementById('exp-desc').value, 
                 amount: parseFloat(document.getElementById('exp-amount').value) || 0, 
-                status: document.getElementById('exp-status').checked ? 'paid' : 'pending', 
+                status: newStatus, 
                 dateType: currentExpDateType, 
-                date: currentExpDateType === 'exact' ? document.getElementById('exp-date-exact').value : document.getElementById('exp-date-month').value,
-                recurrence: document.getElementById('exp-recurrence-type').value
+                date: expDate,
+                recurrence: recurrenceType
             };
             
             if(!dataToSave.desc || !dataToSave.date) {
@@ -722,11 +767,33 @@
             }
             
             const collectionRef = db.collection('users').doc(auth.currentUser.uid).collection('expenses_light');
-            
+            let shouldClone = false;
+
             if(id) {
+                // Se la spesa esisteva, era "da pagare" e ora la sto salvando come "pagata" + ha una ricorrenza attiva -> Duplico
+                if (oldStatus === 'pending' && newStatus === 'paid' && recurrenceType !== 'none') {
+                    shouldClone = true;
+                }
                 await collectionRef.doc(id).update(dataToSave);
             } else {
+                // Se creo una spesa nuova già spuntata come "Pagata" + ricorrenza -> Duplico subito la successiva
+                if (newStatus === 'paid' && recurrenceType !== 'none') {
+                    shouldClone = true;
+                }
                 await collectionRef.add(dataToSave);
+            }
+
+            // CREAZIONE AUTOMATICA SPESA SUCCESSIVA
+            if (shouldClone) {
+                const nextDateStr = calcNextRecurrence(expDate, recurrenceType, currentExpDateType);
+                
+                const clonedData = {
+                    ...dataToSave,
+                    status: 'pending', // La nuova deve ovviamente nascere come da pagare
+                    date: nextDateStr
+                };
+                
+                await collectionRef.add(clonedData);
             }
             
             closeExpenseModal();
@@ -850,7 +917,7 @@
             selettoreCibo.innerHTML = ''; 
             
             if (tipoPasto === "Colazione") {
-                const cibiColazione = ["Pane Semintegrale Tostato", "Salmone Affumicato", "Bresaola", "olio"];
+                const cibiColazione = ["Pane Semintegrale Tostato", "Salmone Affumicato", "Bresaola"];
                 cibiColazione.forEach(cibo => {
                     const opzione = document.createElement('option'); 
                     opzione.value = cibo; 
@@ -871,6 +938,22 @@
                     
                     selettoreCibo.appendChild(optgroup);
                 }
+            }
+            // Aggiorna la dicitura Grammi/Numero in base all'alimento selezionato
+            checkFoodUnit();
+        }
+
+        function checkFoodUnit() {
+            const food = document.getElementById('diet-food').value;
+            const label = document.getElementById('diet-unit-label');
+            const input = document.getElementById('diet-grams');
+            
+            if(food && food.toLowerCase() === 'uova') {
+                label.textContent = "Quantità (Numero)";
+                input.placeholder = "Es. 2";
+            } else {
+                label.textContent = "Quantità (Grammi)";
+                input.placeholder = "Es. 150";
             }
         }
 
@@ -898,12 +981,15 @@
             const gramsInput = parseFloat(document.getElementById('diet-grams').value);
             
             if(!gramsInput || gramsInput <= 0) {
-                return alert("Inserisci una quantità in grammi valida.");
+                return alert("Inserisci una quantità valida.");
             }
 
             const foodKeyInDb = Object.keys(NUTRITION_DB).find(k => k.toLowerCase() === foodName.toLowerCase());
             const nutritionValues = NUTRITION_DB[foodKeyInDb] || { kcal: 0, c: 0, p: 0, f: 0 };
-            const multiplier = gramsInput / 100;
+            
+            // Se sono uova, il database ha i valori di 1 uovo. Altrimenti sono i valori di 100g.
+            const multiplier = foodName.toLowerCase() === 'uova' ? gramsInput : (gramsInput / 100);
+            const notesStr = foodName.toLowerCase() === 'uova' ? `${foodName} (${gramsInput} pz)` : `${foodName} (${gramsInput}g)`;
             
             const calcolatedMacros = { 
                 kcal: nutritionValues.kcal * multiplier, 
@@ -916,7 +1002,7 @@
                 meal: mealSelected, 
                 food: foodName,
                 grams: gramsInput,
-                notes: `${foodName} (${gramsInput}g)`, 
+                notes: notesStr, 
                 date: getDateString(currentDietDate), 
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                 macros: calcolatedMacros
