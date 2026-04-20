@@ -8,8 +8,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel="apple-touch-icon" href="MLogo.png">
-    <link rel="icon" type="image/jpeg" href="MLogo.png">
+    <link rel="apple-touch-icon" href="logo.jpg">
+    <link rel="icon" type="image/jpeg" href="logo.jpg">
     
     <link rel="manifest" href="manifest.json">
 
@@ -20,8 +20,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
         tailwind.config = {
@@ -71,7 +69,7 @@
 <body class="text-slate-800 h-[100dvh] w-full flex flex-col items-center justify-center overflow-hidden relative bg-white">
 
     <div id="auth-screen" class="w-full h-full px-6 flex flex-col items-center text-center z-50 absolute inset-0 justify-center bg-white transition-all duration-500">
-        <img src="MLogo.png" alt="Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=G';">
+        <img src="logo.jpg" alt="Logo" class="w-28 h-28 rounded-3xl shadow-lg mb-6 object-cover bg-white animate-fade-in-up" onerror="this.src='https://via.placeholder.com/100?text=G';">
         <h1 class="font-black text-5xl mb-12 text-slate-950 animate-fade-in-up tracking-tight flex items-center justify-center gap-2">
             Gestionale
         </h1>
@@ -85,15 +83,12 @@
         
         <header class="p-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10 animate-slide-down">
             <div class="flex items-center gap-3">
-                <img src="MLogo.png" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-slate-100" onerror="this.style.display='none';">
+                <img src="logo.jpg" alt="Logo" class="w-10 h-10 rounded-xl shadow-md border border-slate-100" onerror="this.style.display='none';">
                 <h2 id="section-title" class="font-black text-2xl tracking-tight text-slate-950 flex items-center gap-1">
                     Finanza
                 </h2>
             </div>
             <div class="flex gap-2">
-                <button id="btn-analysis" onclick="openAnalysisModal()" class="hidden w-11 h-11 rounded-full bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 flex items-center justify-center active:scale-90 transition">
-                    <i class="fas fa-chart-pie"></i>
-                </button>
                 <button onclick="toggleSettings()" class="w-11 h-11 rounded-full bg-white shadow-md border border-slate-100 text-slate-600 flex items-center justify-center active:scale-90 transition">
                     <i class="fas fa-cog"></i>
                 </button>
@@ -134,83 +129,35 @@
             </button>
         </main>
 
-        <main id="section-diet" class="hidden flex-1 overflow-y-auto relative pb-32 hide-scrollbar bg-slate-50/50 w-full">
+        <main id="section-todo" class="hidden flex-1 overflow-y-auto relative pb-32 hide-scrollbar bg-slate-50/50 w-full">
             <div class="p-4 sm:p-6 space-y-6 max-w-2xl mx-auto">
-                <div class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-lg border border-slate-100">
-                    <button onclick="changeDietDay(-1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md flex items-center justify-center border border-slate-100 active:scale-90 transition">
+                
+                <div class="flex justify-between items-center">
+                    <button onclick="toggleTodoArchive()" id="btn-todo-archive" class="text-[10px] bg-slate-200 text-slate-600 font-bold px-3 py-2 rounded-xl active:scale-95 transition uppercase tracking-wider ml-auto">
+                        <i class="fas fa-box-archive mr-1"></i> Mostra Archiviate
+                    </button>
+                </div>
+
+                <div id="todo-navigator" class="flex justify-between items-center bg-white p-5 rounded-3xl shadow-lg border border-slate-100">
+                    <button onclick="changeTodoDay(-1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md flex items-center justify-center border border-slate-100 active:scale-90 transition">
                         <i class="fas fa-chevron-left"></i>
                     </button>
                     <div class="text-center flex-1">
-                        <div id="diet-today" class="font-black text-slate-950 text-xl capitalize"></div>
+                        <div id="todo-today" class="font-black text-slate-950 text-xl capitalize"></div>
                     </div>
-                    <button onclick="changeDietDay(1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md flex items-center justify-center border border-slate-100 active:scale-90 transition">
+                    <button onclick="changeTodoDay(1)" class="w-12 h-12 rounded-full bg-white text-slate-600 shadow-md flex items-center justify-center border border-slate-100 active:scale-90 transition">
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 </div>
 
-                <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100 flex items-center gap-4">
-                    <div class="w-24 h-24 shrink-0 relative">
-                        <canvas id="dailyMacroChart"></canvas>
-                    </div>
-                    <div class="flex-1">
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Stima Giornaliera</div>
-                        <div class="text-3xl font-black text-slate-950 tracking-tight">
-                            <span id="daily-kcal">0</span> <span class="text-lg text-gray-500">kcal</span>
-                        </div>
-                        <div id="daily-macros-text" class="text-[11px] font-bold mt-2 flex flex-col gap-1">
-                            <span class="text-blue-500">C: 0g (0%)</span> 
-                            <span class="text-red-500">P: 0g (0%)</span> 
-                            <span class="text-yellow-500">G: 0g (0%)</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    
-                    <button onclick="toggleSupp('d3')" id="supp-d3" class="p-4 h-full w-full rounded-2xl border bg-white flex flex-col items-center justify-center shadow-sm transition-all active:scale-95">
-                        <i class="fas fa-sun text-orange-400 text-2xl mb-2"></i>
-                        <span class="text-xs font-bold uppercase">Vit. D3</span>
-                    </button>
-
-                    <div class="flex flex-col gap-2 h-full">
-                        <button onclick="toggleSupp('antio1_col')" id="supp-antio1_col" class="flex-1 p-3 rounded-xl border bg-white flex items-center justify-center gap-2 shadow-sm text-[10px] font-bold transition-all active:scale-95">
-                            <i class="fas fa-shield-virus text-blue-400"></i>Antio 1 (Colaz.)
-                        </button>
-                        <button onclick="toggleSupp('antio1_pra')" id="supp-antio1_pra" class="flex-1 p-3 rounded-xl border bg-white flex items-center justify-center gap-2 shadow-sm text-[10px] font-bold transition-all active:scale-95">
-                            <i class="fas fa-shield-virus text-blue-600"></i>Antio 1 (Pranzo)
-                        </button>
-                    </div>
-
-                    <button onclick="toggleSupp('antio2')" id="supp-antio2" class="p-4 h-full w-full rounded-2xl border bg-white flex flex-col items-center justify-center shadow-sm transition-all active:scale-95">
-                        <i class="fas fa-leaf text-emerald-400 text-2xl mb-2"></i>
-                        <span class="text-xs font-bold uppercase">Antio 2</span>
-                    </button>
-
-                </div>
-
-                <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-xs font-bold text-gray-400 uppercase">Idratazione</h3>
-                        <div class="text-3xl font-black text-blue-600 tracking-tight">
-                            <span id="water-liters">0.00</span> <span class="text-lg">L</span>
-                        </div>
-                    </div>
-                    <div class="flex gap-2 items-center bg-slate-50 p-2 rounded-2xl border border-slate-100">
-                        <input type="number" id="water-input-ml" class="w-16 bg-transparent text-center font-black text-slate-900 outline-none" placeholder="ml">
-                        <button onclick="addCustomWater()" class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md active:scale-90 transition">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </div>
-
                 <div class="bg-white p-5 rounded-3xl shadow-lg border border-slate-100">
-                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Pasti Registrati</h3>
-                    <div id="diet-logs-container" class="space-y-4"></div>
+                    <h3 id="todo-list-title" class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Cose da fare</h3>
+                    <div id="todo-logs-container" class="space-y-3"></div>
                 </div>
             </div>
             
-            <button onclick="openDietModal()" class="fixed bottom-24 right-6 w-16 h-16 bg-emerald-600 text-white rounded-2xl shadow-lg flex items-center justify-center text-2xl z-20 active:scale-95 transition border border-white/20">
-                <i class="fas fa-utensils"></i>
+            <button onclick="openTodoModal()" class="fixed bottom-24 right-6 w-16 h-16 bg-emerald-600 text-white rounded-2xl shadow-lg flex items-center justify-center text-2xl z-20 active:scale-95 transition border border-white/20">
+                <i class="fas fa-plus"></i>
             </button>
         </main>
 
@@ -219,136 +166,66 @@
                 <i class="fas fa-wallet text-xl"></i>
                 <span class="text-[10px] font-bold uppercase">Finanze</span>
             </button>
-            <button onclick="switchTab('diet')" id="tab-diet" class="flex flex-col items-center gap-1 text-slate-400 transition-all">
-                <i class="fas fa-apple-whole text-xl"></i>
-                <span class="text-[10px] font-bold uppercase">Dieta</span>
+            <button onclick="switchTab('todo')" id="tab-todo" class="flex flex-col items-center gap-1 text-slate-400 transition-all">
+                <i class="fas fa-list-check text-xl"></i>
+                <span class="text-[10px] font-bold uppercase">To-Do</span>
             </button>
         </nav>
 
-        <div id="diet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
-            <div class="bg-white rounded-[2rem] p-6 shadow-2xl w-full max-w-md border border-slate-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-black text-2xl text-slate-950">Registra Pasto</h3>
-                    <button onclick="closeDietModal()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase block mb-1">Momento</label>
-                        <select id="diet-type" class="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 font-bold outline-none" onchange="updateFoodSelect()">
-                            <option value="Colazione">Colazione</option>
-                            <option value="Pranzo">Pranzo</option>
-                            <option value="Cena">Cena</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-xs font-bold text-gray-500 uppercase block mb-1">Alimento</label>
-                        <select id="diet-food" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none" onchange="checkFoodUnit()"></select>
-                        <button type="button" onclick="openCustomFoodModal()" class="w-full py-2 mt-2 bg-emerald-50 text-emerald-700 font-bold rounded-xl text-xs flex items-center justify-center gap-2 active:scale-95 transition border border-emerald-200">
-                            <i class="fas fa-plus"></i> Aggiungi nuovo alimento
-                        </button>
-                    </div>
-                    <div>
-                        <label id="diet-unit-label" class="text-xs font-bold text-gray-500 uppercase block mb-1">Quantità (Grammi)</label>
-                        <input type="number" id="diet-grams" class="w-full p-4 rounded-2xl border border-slate-200 font-black text-2xl text-emerald-600 outline-none" placeholder="Es. 150">
-                    </div>
-                    <button onclick="saveDietLog()" class="w-full py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition text-lg mt-2">
-                        Salva Pasto
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="custom-food-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[70] hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
-            <div class="bg-white rounded-[2rem] p-6 shadow-2xl w-full max-w-sm border border-slate-100">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-black text-xl text-slate-950">Nuovo Alimento</h3>
-                    <button onclick="closeCustomFoodModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="space-y-3">
-                    <div>
-                        <input type="text" id="cf-name" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Nome alimento (es. Mela)">
-                    </div>
-                    <div>
-                        <select id="cf-group" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm bg-slate-50">
-                            <option value="COLAZIONE">Menu Colazione</option>
-                            <option value="CARNE">Carne</option>
-                            <option value="PESCE">Pesce</option>
-                            <option value="VERDURA">Verdura</option>
-                            <option value="UOVA">Uova</option>
-                            <option value="CONDIMENTI">Condimenti</option>
-                            <option value="ALTRO">Altro (Nuova Categoria)</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <input type="number" id="cf-kcal" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Kcal">
-                        <input type="number" id="cf-c" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Carbo (g)">
-                        <input type="number" id="cf-p" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Proteine (g)">
-                        <input type="number" id="cf-f" class="w-full p-3 rounded-xl border border-slate-200 font-bold outline-none text-sm" placeholder="Grassi (g)">
-                    </div>
-                    <p class="text-[9px] text-gray-400 font-bold text-center uppercase">Inserisci i valori per 100g (o per 1 pezzo)</p>
-                    <button onclick="saveCustomFood()" class="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-sm mt-2">
-                        Salva nel Database
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div id="analysis-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden flex-col items-center justify-end sm:justify-center p-0 sm:p-4 transition-opacity opacity-0 duration-300">
-            <div class="bg-white rounded-t-[2rem] sm:rounded-[2rem] p-6 shadow-2xl w-full max-w-md border border-slate-100 max-h-[90dvh] flex flex-col">
+        <div id="todo-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden flex-col items-center justify-center p-4 transition-opacity opacity-0 duration-300">
+            <div class="bg-white rounded-[2rem] p-6 shadow-2xl w-full max-w-md border border-slate-100 max-h-[90dvh] flex flex-col">
                 <div class="flex justify-between items-center mb-6 shrink-0">
-                    <h3 id="analysis-title" class="font-black text-xl text-slate-950">Analisi (Tutto)</h3>
-                    <div class="flex items-center gap-2">
-                        <button onclick="toggleAnalysisMode()" id="btn-toggle-analysis" class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-3 py-2 rounded-xl active:scale-95 transition">
-                            Ultimi 7 gg
-                        </button>
-                        <button onclick="closeAnalysisModal()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
+                    <h3 id="todo-modal-title" class="font-black text-2xl text-slate-950">Nuova Task</h3>
+                    <button onclick="closeTodoModal()" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
                 
-                <div class="overflow-y-auto hide-scrollbar flex-1 space-y-6 pb-6">
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                            <div class="text-[10px] font-bold text-gray-500 uppercase">Media Kcal/gg</div>
-                            <div class="text-2xl font-black text-slate-950" id="weekly-avg-kcal">0</div>
-                        </div>
-                        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 text-center">
-                            <div class="text-[10px] font-bold text-gray-500 uppercase">Media Acqua/gg</div>
-                            <div class="text-2xl font-black text-blue-600" id="weekly-avg-water">0 L</div>
+                <input type="hidden" id="todo-id">
+                
+                <div class="space-y-4 overflow-y-auto hide-scrollbar flex-1 pr-1">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Titolo</label>
+                        <input type="text" id="todo-title" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none" placeholder="Cosa devi fare?">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Scadenza</label>
+                        <input type="date" id="todo-date" class="w-full p-4 rounded-2xl border border-slate-200 font-bold outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase block mb-1">Descrizione (Opzionale)</label>
+                        <textarea id="todo-desc" rows="3" class="w-full p-4 rounded-2xl border border-slate-200 font-medium outline-none resize-none" placeholder="Aggiungi dettagli..."></textarea>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-3">Sottotask / Aggiornamenti</h4>
+                        
+                        <div id="todo-subtasks-list" class="space-y-2 mb-3"></div>
+                        
+                        <div class="flex gap-2 items-center">
+                            <div class="flex-1 space-y-2">
+                                <input type="text" id="subtask-title" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none" placeholder="Titolo sottotask">
+                                <input type="date" id="subtask-date" class="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-bold outline-none">
+                            </div>
+                            <button onclick="addSubtaskFromUI()" class="w-12 h-full bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center active:scale-95 transition">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 text-center">
-                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-4">Media Macronutrienti</h4>
-                        <div class="w-32 h-32 mx-auto relative mb-4">
-                            <canvas id="weeklyMacroChart"></canvas>
-                        </div>
-                        <div id="weekly-macros-text" class="text-[11px] font-bold flex justify-center gap-3"></div>
-                    </div>
+                    <label class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100 cursor-pointer mt-2">
+                        <span class="font-bold text-slate-700">Archivia (Completata)</span>
+                        <input type="checkbox" id="todo-archived" class="w-6 h-6 rounded text-emerald-600 focus:ring-0">
+                    </label>
+                </div>
 
-                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <h4 class="text-xs font-bold text-gray-400 uppercase mb-4">Costanza Integratori</h4>
-                        <div class="space-y-2 text-sm font-bold">
-                            <div class="flex justify-between items-center">
-                                <span class="text-orange-500"><i class="fas fa-capsules mr-2"></i>Vit. D3</span>
-                                <span id="weekly-d3" class="text-gray-500">0 gg</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-500"><i class="fas fa-shield-virus mr-2"></i>Antio 1</span>
-                                <span id="weekly-a1" class="text-gray-500">0 gg</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-emerald-500"><i class="fas fa-leaf mr-2"></i>Antio 2</span>
-                                <span id="weekly-a2" class="text-gray-500">0 gg</span>
-                            </div>
-                        </div>
-                    </div>
+                <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 shrink-0">
+                    <button id="btn-delete-todo" onclick="deleteTodo()" class="hidden px-5 py-4 bg-red-50 text-red-600 rounded-2xl active:scale-95 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button onclick="saveTodo()" class="flex-1 py-4 bg-emerald-600 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition text-lg">
+                        Salva
+                    </button>
                 </div>
             </div>
         </div>
@@ -410,6 +287,9 @@
                 </div>
                 
                 <div class="flex gap-3 pt-5 mt-2 border-t border-slate-100 shrink-0">
+                    <button id="btn-delete-exp" onclick="deleteExpense()" class="hidden px-5 py-4 bg-red-50 text-red-600 rounded-2xl active:scale-95 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
                     <button onclick="saveExpense()" class="flex-1 py-4 bg-slate-950 text-white font-bold rounded-2xl shadow-xl active:scale-95 transition">
                         Salva
                     </button>
@@ -453,85 +333,16 @@
         const FB_EMAIL = "mattiads92@gmail.com";
         const FB_PASS = "-273.15m";
 
-        // VARIABILI GLOBALI
+        // VARIABILI GLOBALI FINANZE
         let expenses = [];
-        let dietLogs = [];
-        let dailyStats = { water: 0, d3: false, antio1_col: false, antio1_pra: false, antio2: false };
         let currentCycleDate = new Date();
         let currentExpDateType = 'exact';
-        let dailyChartInstance = null;
-        let weeklyChartInstance = null;
         
-        let currentDietDate = new Date();
-        let dietStatsUnsubscribe = null;
-        let dietLogsUnsubscribe = null;
-        let customFoodsUnsubscribe = null;
-        let currentAnalysisMode = 'all';
-
-        // PUNTO B: Database Nutrizionale Base (ora modificabile dinamicamente)
-        const BASE_NUTRITION_DB = {
-            "Pane Semintegrale Tostato": { kcal: 250, c: 45, p: 8, f: 3 },
-            "Salmone Affumicato": { kcal: 117, c: 0, p: 18, f: 4 },
-            "Bresaola": { kcal: 151, c: 0, p: 32, f: 2.6 },
-            "pollo": { kcal: 165, c: 0, p: 31, f: 3.6 },
-            "tacchino": { kcal: 104, c: 0, p: 22, f: 1.7 },
-            "coniglio": { kcal: 114, c: 0, p: 22, f: 2.3 },
-            "maiale": { kcal: 242, c: 0, p: 27, f: 14 },
-            "manzo": { kcal: 250, c: 0, p: 26, f: 15 },
-            "vitello": { kcal: 172, c: 0, p: 24, f: 8 },
-            "salmone fresco": { kcal: 208, c: 0, p: 20, f: 13 },
-            "salmone scatola sott'olio": { kcal: 220, c: 0, p: 24, f: 13 },
-            "platessa": { kcal: 86, c: 0, p: 17, f: 1.9 },
-            "tonno fresco": { kcal: 144, c: 0, p: 23, f: 4.9 },
-            "tonno scatola sott'olio (130g)": { kcal: 192, c: 0, p: 25, f: 10 },
-            "merluzzo": { kcal: 82, c: 0, p: 18, f: 0.7 },
-            "sogliole": { kcal: 86, c: 0, p: 18, f: 1.5 },
-            "ombrina": { kcal: 90, c: 0, p: 19, f: 1 },
-            "palombo": { kcal: 80, c: 0, p: 18, f: 1 },
-            "orata": { kcal: 115, c: 0, p: 20, f: 3.5 },
-            "spigola": { kcal: 97, c: 0, p: 18, f: 2 },
-            "branzino": { kcal: 97, c: 0, p: 18, f: 2 },
-            "nasello": { kcal: 71, c: 0, p: 16, f: 0.6 },
-            "ricciola": { kcal: 115, c: 0, p: 23, f: 2 },
-            "seppie": { kcal: 79, c: 1, p: 16, f: 1 },
-            "calamari": { kcal: 92, c: 3, p: 15, f: 1.5 },
-            "totani": { kcal: 80, c: 1, p: 16, f: 1 },
-            "polpo": { kcal: 82, c: 2, p: 15, f: 1 },
-            "vongole": { kcal: 74, c: 2.5, p: 10, f: 2.5 },
-            "cozze": { kcal: 86, c: 3, p: 12, f: 2.7 },
-            "gamberetti": { kcal: 71, c: 1, p: 14, f: 1 },
-            "scampi": { kcal: 90, c: 1, p: 18, f: 1 },
-            "mazzancolle": { kcal: 95, c: 1, p: 19, f: 1 },
-            "gamberoni": { kcal: 90, c: 1, p: 18, f: 1 },
-            "uova": { kcal: 70, c: 0.5, p: 6, f: 5 },
-            "sedano": { kcal: 16, c: 3, p: 0.7, f: 0.2 },
-            "carciofi": { kcal: 47, c: 10, p: 3, f: 0.2 },
-            "finocchi": { kcal: 31, c: 7, p: 1.2, f: 0.2 },
-            "zucchine": { kcal: 17, c: 3, p: 1.2, f: 0.3 },
-            "spinaci": { kcal: 23, c: 3.6, p: 2.9, f: 0.4 },
-            "zucca": { kcal: 26, c: 6.5, p: 1, f: 0.1 },
-            "broccoletti": { kcal: 34, c: 7, p: 2.8, f: 0.4 },
-            "asparagi": { kcal: 20, c: 3.9, p: 2.2, f: 0.1 },
-            "piselli": { kcal: 81, c: 14, p: 5, f: 0.4 },
-            "carota": { kcal: 41, c: 10, p: 0.9, f: 0.2 },
-            "olio": { kcal: 884, c: 0, p: 0, f: 100 },
-            "sale": { kcal: 0, c: 0, p: 0, f: 0 }
-        };
-
-        const BASE_FOODS_GROUPS = {
-            "CARNE": ["pollo", "tacchino", "coniglio", "maiale", "manzo", "vitello"],
-            "PESCE": ["salmone fresco", "salmone affumicato", "salmone scatola sott'olio", "platessa", "tonno fresco", "tonno scatola sott'olio (130g)", "merluzzo", "sogliole", "ombrina", "palombo", "orata", "spigola", "gamberetti", "scampi", "mazzancolle", "gamberoni", "branzino", "nasello", "ricciola", "seppie", "calamari", "totani", "polpo", "vongole", "cozze"],
-            "UOVA": ["uova"],
-            "VERDURA": ["sedano", "carciofi", "finocchi", "zucchine", "spinaci", "zucca", "broccoletti", "asparagi", "piselli", "carota"],
-            "CONDIMENTI": ["olio", "sale"]
-        };
-        
-        const BASE_FOODS_COLAZIONE = ["Pane Semintegrale Tostato", "Salmone Affumicato", "Bresaola"];
-
-        // Variabili dinamiche che conterranno anche i cibi personalizzati
-        let NUTRITION_DB = JSON.parse(JSON.stringify(BASE_NUTRITION_DB));
-        let FOODS_GROUPS = JSON.parse(JSON.stringify(BASE_FOODS_GROUPS));
-        let FOODS_COLAZIONE = [...BASE_FOODS_COLAZIONE];
+        // VARIABILI GLOBALI TO-DO
+        let todos = [];
+        let currentTodoDate = new Date();
+        let isShowingArchived = false;
+        let currentSubtasks = []; // Array temporaneo per i sottotask durante la modifica
 
         // --- AUTENTICAZIONE E AVVIO ---
         document.getElementById('btn-verify-pin').addEventListener('click', () => {
@@ -568,62 +379,34 @@
                 renderCycle();
             });
 
-            // PUNTO B: Listener Alimenti Personalizzati
-            customFoodsUnsubscribe = db.collection('users').doc(uid).collection('custom_foods').onSnapshot(snapshot => {
-                // Resettiamo ai valori base
-                NUTRITION_DB = JSON.parse(JSON.stringify(BASE_NUTRITION_DB));
-                FOODS_GROUPS = JSON.parse(JSON.stringify(BASE_FOODS_GROUPS));
-                FOODS_COLAZIONE = [...BASE_FOODS_COLAZIONE];
-
-                // Aggiungiamo i personalizzati
-                snapshot.docs.forEach(doc => {
-                    let data = doc.data();
-                    NUTRITION_DB[data.name] = { kcal: data.kcal, c: data.c, p: data.p, f: data.f };
-                    
-                    if (data.group === 'COLAZIONE') {
-                        FOODS_COLAZIONE.push(data.name);
-                    } else {
-                        if(!FOODS_GROUPS[data.group]) FOODS_GROUPS[data.group] = [];
-                        FOODS_GROUPS[data.group].push(data.name);
-                    }
-                });
-                
-                // Aggiorno a schermo nel caso fossimo dentro la modale
-                updateFoodSelect();
+            // Listener To-Do
+            db.collection('users').doc(uid).collection('todos').onSnapshot(snapshot => {
+                todos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+                renderTodos();
             });
 
-            // Caricamento Dieta 
-            loadDietDataForDate(currentDietDate);
+            updateTodoHeaderDate();
         }
 
         function switchTab(tab) {
             document.getElementById('section-finances').classList.toggle('hidden', tab !== 'finances');
-            document.getElementById('section-diet').classList.toggle('hidden', tab !== 'diet');
+            document.getElementById('section-todo').classList.toggle('hidden', tab !== 'todo');
             
             const tabFinances = document.getElementById('tab-finances');
-            const tabDiet = document.getElementById('tab-diet');
+            const tabTodo = document.getElementById('tab-todo');
             
             if (tab === 'finances') {
                 tabFinances.className = "flex flex-col items-center gap-1 text-blue-600 transition-all";
-                tabDiet.className = "flex flex-col items-center gap-1 text-slate-400 transition-all";
+                tabTodo.className = "flex flex-col items-center gap-1 text-slate-400 transition-all";
                 document.getElementById('section-title').textContent = 'Finanza';
             } else {
-                tabDiet.className = "flex flex-col items-center gap-1 text-emerald-600 transition-all";
+                tabTodo.className = "flex flex-col items-center gap-1 text-emerald-600 transition-all";
                 tabFinances.className = "flex flex-col items-center gap-1 text-slate-400 transition-all";
-                document.getElementById('section-title').textContent = 'Dieta';
-            }
-            
-            const btnAna = document.getElementById('btn-analysis');
-            if(tab === 'diet') { 
-                btnAna.classList.remove('hidden'); 
-                btnAna.classList.add('flex'); 
-            } else { 
-                btnAna.classList.add('hidden'); 
-                btnAna.classList.remove('flex'); 
+                document.getElementById('section-title').textContent = 'To-Do';
             }
         }
 
-        // --- LOGICA FINANZE ---
+        // --- LOGICA FINANZE (Intatta) ---
         function getCycleDates(refDate) {
             const d = new Date(refDate);
             let startDate, endDate;
@@ -694,7 +477,6 @@
                 const amountColorClass = e.status === 'paid' ? 'text-gray-500' : (isOverdueItem ? 'text-red-600' : 'text-blue-600');
                 const overdueBadge = isOverdueItem ? `<span class="bg-red-100 text-red-700 text-[9px] font-black px-2 py-0.5 rounded ml-2 uppercase">Scaduta</span>` : '';
                 
-                // PUNTO C: Cestino Rapido per le Spese (con stopPropagation)
                 div.innerHTML = `
                     <div class="flex items-center gap-3">
                         <div class="text-[10px] font-bold bg-slate-100 text-gray-500 px-2 py-1 rounded-lg">${displayDate}</div>
@@ -719,7 +501,6 @@
             document.getElementById('cycle-paid').textContent = `€ ${paidTotal.toFixed(2)}`;
         }
 
-        // FUNZIONE PUNTO C
         async function deleteExpenseRapido(id) {
             if(confirm("Sei sicuro di voler eliminare questa spesa?")) {
                 await db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').doc(id).delete(); 
@@ -753,6 +534,8 @@
             modal.classList.add('flex');
             setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10);
             
+            const delBtn = document.getElementById('btn-delete-exp');
+            
             if(id) { 
                 const e = expenses.find(x => x.id === id); 
                 document.getElementById('modal-title').textContent = "Modifica Spesa";
@@ -773,6 +556,8 @@
                 } else {
                     document.getElementById('exp-date-exact').value = e.date;
                 }
+                
+                delBtn.classList.remove('hidden');
             } else { 
                 document.getElementById('modal-title').textContent = "Nuova Spesa";
                 document.getElementById('exp-id').value = ''; 
@@ -784,6 +569,8 @@
                 document.getElementById('exp-recurrence-val').value = '1';
                 
                 document.getElementById('exp-status').checked = false; 
+                
+                delBtn.classList.add('hidden');
             }
         }
 
@@ -875,494 +662,265 @@
             closeExpenseModal();
         }
 
-        // --- LOGICA DIETA E ANALISI ---
+        async function deleteExpense() { 
+            if(confirm("Sei sicuro di voler eliminare questa spesa?")) {
+                const idToDelete = document.getElementById('exp-id').value;
+                await db.collection('users').doc(auth.currentUser.uid).collection('expenses_light').doc(idToDelete).delete(); 
+                closeExpenseModal(); 
+            }
+        }
+
+        // --- LOGICA TO-DO ---
         function getDateString(dateObj) {
             return new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
         }
 
-        function changeDietDay(direction) {
-            currentDietDate.setDate(currentDietDate.getDate() + direction);
-            loadDietDataForDate(currentDietDate);
+        function changeTodoDay(direction) {
+            currentTodoDate.setDate(currentTodoDate.getDate() + direction);
+            updateTodoHeaderDate();
+            renderTodos();
         }
 
-        function loadDietDataForDate(dateObj) {
-            const uid = auth.currentUser.uid;
-            const dateStr = getDateString(dateObj);
-
-            if (dietStatsUnsubscribe) dietStatsUnsubscribe();
-            if (dietLogsUnsubscribe) dietLogsUnsubscribe();
-
+        function updateTodoHeaderDate() {
             const todayStr = getDateString(new Date());
+            const selectedStr = getDateString(currentTodoDate);
             const opzioniData = { weekday: 'long', day: 'numeric', month: 'long' };
             
-            if (dateStr === todayStr) {
-                document.getElementById('diet-today').textContent = "Oggi";
+            if (selectedStr === todayStr) {
+                document.getElementById('todo-today').textContent = "Oggi";
             } else {
-                document.getElementById('diet-today').textContent = dateObj.toLocaleDateString('it-IT', opzioniData);
+                document.getElementById('todo-today').textContent = currentTodoDate.toLocaleDateString('it-IT', opzioniData);
             }
-
-            dietStatsUnsubscribe = db.collection('users').doc(uid).collection('daily_stats').doc(dateStr).onSnapshot(doc => {
-                dailyStats = doc.exists ? doc.data() : { water: 0, d3: false, antio1_col: false, antio1_pra: false, antio2: false };
-                updateDietUI();
-            });
-
-            dietLogsUnsubscribe = db.collection('users').doc(uid).collection('diet_logs').where('date', '==', dateStr).onSnapshot(snapshot => {
-                dietLogs = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-                dietLogs.sort((a, b) => {
-                    let tA = a.timestamp ? a.timestamp.toMillis() : Date.now();
-                    let tB = b.timestamp ? b.timestamp.toMillis() : Date.now();
-                    return tA - tB;
-                });
-                renderDietLogs();
-            });
         }
 
-        function updateDietUI() {
-            document.getElementById('water-liters').textContent = (dailyStats.water / 1000).toFixed(2);
-            
-            const integratori = ['d3', 'antio1_col', 'antio1_pra', 'antio2'];
-            
-            integratori.forEach(chiave => { 
-                const btn = document.getElementById('supp-' + chiave);
-                const isActive = dailyStats[chiave];
-                
-                let colorClass;
-                if (chiave === 'd3') colorClass = 'orange';
-                else if (chiave.includes('antio1')) colorClass = 'blue';
-                else colorClass = 'emerald';
+        function toggleTodoArchive() {
+            isShowingArchived = !isShowingArchived;
+            const btn = document.getElementById('btn-todo-archive');
+            const nav = document.getElementById('todo-navigator');
+            const title = document.getElementById('todo-list-title');
 
-                if (chiave.includes('antio1')) {
-                    btn.className = isActive 
-                        ? `flex-1 p-3 rounded-xl border-2 border-${colorClass}-400 bg-${colorClass}-50 flex items-center justify-center gap-2 shadow-md text-[10px] font-bold transition-all active:scale-95` 
-                        : `flex-1 p-3 rounded-xl border bg-white flex items-center justify-center gap-2 shadow-sm text-[10px] font-bold transition-all active:scale-95`;
-                } else {
-                    btn.className = isActive 
-                        ? `p-4 h-full w-full rounded-2xl border-2 border-${colorClass}-400 bg-${colorClass}-50 flex flex-col items-center justify-center shadow-md text-xs font-bold uppercase transition-all active:scale-95` 
-                        : `p-4 h-full w-full rounded-2xl border bg-white flex flex-col items-center justify-center shadow-sm text-xs font-bold uppercase transition-all active:scale-95`;
-                }
-            });
-        }
-
-        async function addCustomWater() {
-            const inputVal = document.getElementById('water-input-ml').value;
-            const val = parseInt(inputVal) || 0;
-            
-            if(val <= 0) return;
-            
-            const dateStr = getDateString(currentDietDate);
-            const currentWater = dailyStats.water || 0;
-            
-            await db.collection('users').doc(auth.currentUser.uid).collection('daily_stats').doc(dateStr).set({ 
-                ...dailyStats, 
-                water: currentWater + val 
-            }, { merge: true });
-            
-            document.getElementById('water-input-ml').value = '';
-        }
-
-        async function toggleSupp(chiave) { 
-            const dateStr = getDateString(currentDietDate);
-            const newValue = !dailyStats[chiave];
-            
-            await db.collection('users').doc(auth.currentUser.uid).collection('daily_stats').doc(dateStr).set({ 
-                ...dailyStats, 
-                [chiave]: newValue 
-            }, { merge: true }); 
-        }
-
-        function updateFoodSelect() { 
-            const tipoPasto = document.getElementById('diet-type').value;
-            const selettoreCibo = document.getElementById('diet-food'); 
-            
-            const currentVal = selettoreCibo.value; // Salvo il valore corrente per non perderlo se aggiorno
-            selettoreCibo.innerHTML = ''; 
-            
-            if (tipoPasto === "Colazione") {
-                FOODS_COLAZIONE.forEach(cibo => {
-                    const opzione = document.createElement('option'); 
-                    opzione.value = cibo; 
-                    opzione.textContent = cibo; 
-                    selettoreCibo.appendChild(opzione);
-                });
+            if (isShowingArchived) {
+                btn.innerHTML = '<i class="fas fa-list mr-1"></i> Mostra Attive';
+                nav.classList.add('hidden');
+                nav.classList.remove('flex');
+                title.textContent = 'Archivio Storico';
             } else {
-                for (const [nomeGruppo, listaAlimenti] of Object.entries(FOODS_GROUPS)) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = nomeGruppo;
-                    
-                    listaAlimenti.forEach(cibo => {
-                        const opzione = document.createElement('option'); 
-                        opzione.value = cibo; 
-                        opzione.textContent = cibo; 
-                        optgroup.appendChild(opzione);
-                    });
-                    
-                    selettoreCibo.appendChild(optgroup);
-                }
+                btn.innerHTML = '<i class="fas fa-box-archive mr-1"></i> Mostra Archiviate';
+                nav.classList.remove('hidden');
+                nav.classList.add('flex');
+                title.textContent = 'Cose da fare';
             }
-
-            if(currentVal && Array.from(selettoreCibo.options).some(opt => opt.value === currentVal)) {
-                selettoreCibo.value = currentVal;
-            }
-            checkFoodUnit();
+            renderTodos();
         }
 
-        function checkFoodUnit() {
-            const food = document.getElementById('diet-food').value;
-            const label = document.getElementById('diet-unit-label');
-            const input = document.getElementById('diet-grams');
-            
-            if(food && food.toLowerCase() === 'uova') {
-                label.textContent = "Quantità (Numero)";
-                input.placeholder = "Es. 2";
-            } else {
-                label.textContent = "Quantità (Grammi)";
-                input.placeholder = "Es. 150";
-            }
-        }
-
-        function openDietModal() { 
-            const modal = document.getElementById('diet-modal'); 
-            modal.classList.remove('hidden'); 
-            modal.classList.add('flex'); 
-            setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10); 
-            updateFoodSelect(); 
-        }
-
-        function closeDietModal() { 
-            const modal = document.getElementById('diet-modal'); 
-            modal.classList.replace('opacity-100', 'opacity-0'); 
-            setTimeout(() => { 
-                modal.classList.add('hidden'); 
-                modal.classList.remove('flex'); 
-            }, 300);
-            document.getElementById('diet-grams').value = '';
-        }
-
-        // PUNTO B: Funzioni per il Modulo Alimenti Personalizzati
-        function openCustomFoodModal() {
-            closeDietModal();
-            const modal = document.getElementById('custom-food-modal'); 
-            modal.classList.remove('hidden'); 
-            modal.classList.add('flex'); 
-            setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10); 
-        }
-
-        function closeCustomFoodModal() {
-            const modal = document.getElementById('custom-food-modal'); 
-            modal.classList.replace('opacity-100', 'opacity-0'); 
-            setTimeout(() => { 
-                modal.classList.add('hidden'); 
-                modal.classList.remove('flex'); 
-                // Pulisco i campi
-                document.getElementById('cf-name').value = '';
-                document.getElementById('cf-kcal').value = '';
-                document.getElementById('cf-c').value = '';
-                document.getElementById('cf-p').value = '';
-                document.getElementById('cf-f').value = '';
-            }, 300);
-        }
-
-        async function saveCustomFood() {
-            const name = document.getElementById('cf-name').value.trim();
-            const group = document.getElementById('cf-group').value;
-            const kcal = parseFloat(document.getElementById('cf-kcal').value) || 0;
-            const c = parseFloat(document.getElementById('cf-c').value) || 0;
-            const p = parseFloat(document.getElementById('cf-p').value) || 0;
-            const f = parseFloat(document.getElementById('cf-f').value) || 0;
-            
-            if(!name) return alert("Inserisci il nome dell'alimento.");
-
-            await db.collection('users').doc(auth.currentUser.uid).collection('custom_foods').add({
-                name: name,
-                group: group,
-                kcal: kcal,
-                c: c,
-                p: p,
-                f: f
-            });
-            
-            closeCustomFoodModal();
-            setTimeout(() => openDietModal(), 350); // Riapro la modale dei pasti per continuare
-        }
-
-        async function saveDietLog() {
-            const mealSelected = document.getElementById('diet-type').value;
-            const foodName = document.getElementById('diet-food').value;
-            const gramsInput = parseFloat(document.getElementById('diet-grams').value);
-            
-            if(!gramsInput || gramsInput <= 0) {
-                return alert("Inserisci una quantità valida.");
-            }
-
-            const foodKeyInDb = Object.keys(NUTRITION_DB).find(k => k.toLowerCase() === foodName.toLowerCase());
-            const nutritionValues = NUTRITION_DB[foodKeyInDb] || { kcal: 0, c: 0, p: 0, f: 0 };
-            
-            const multiplier = foodName.toLowerCase() === 'uova' ? gramsInput : (gramsInput / 100);
-            const notesStr = foodName.toLowerCase() === 'uova' ? `${foodName} (${gramsInput} pz)` : `${foodName} (${gramsInput}g)`;
-            
-            const calcolatedMacros = { 
-                kcal: nutritionValues.kcal * multiplier, 
-                c: nutritionValues.c * multiplier, 
-                p: nutritionValues.p * multiplier, 
-                f: nutritionValues.f * multiplier 
-            };
-
-            await db.collection('users').doc(auth.currentUser.uid).collection('diet_logs').add({
-                meal: mealSelected, 
-                food: foodName,
-                grams: gramsInput,
-                notes: notesStr, 
-                date: getDateString(currentDietDate), 
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                macros: calcolatedMacros
-            });
-            
-            closeDietModal();
-        }
-
-        function renderDietLogs() {
-            const container = document.getElementById('diet-logs-container');
+        function renderTodos() {
+            const container = document.getElementById('todo-logs-container');
             container.innerHTML = '';
             
-            let totalKcal = 0, totalCarbs = 0, totalProteins = 0, totalFats = 0;
-            
-            if(dietLogs.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-400 py-4 text-sm">Nessun pasto registrato per questa data.</p>';
-            } else {
-                const mealsOrderAndConfig = {
-                    "Colazione": { colore: "blue" },
-                    "Pranzo": { colore: "orange" },
-                    "Cena": { colore: "purple" }
-                };
-                
-                const groupedMeals = { "Colazione": [], "Pranzo": [], "Cena": [] };
-                
-                dietLogs.forEach(log => {
-                    if(log.macros) {
-                        totalKcal += log.macros.kcal || 0;
-                        totalCarbs += log.macros.c || 0;
-                        totalProteins += log.macros.p || 0;
-                        totalFats += log.macros.f || 0;
+            const todayStr = getDateString(new Date());
+            const selectedStr = getDateString(currentTodoDate);
+
+            // Filtro e ordino le task
+            let visibleTodos = todos.filter(t => {
+                if (isShowingArchived) {
+                    return t.archived === true;
+                } else {
+                    if (t.archived === true) return false;
+                    // Se la vista è su "Oggi", includo anche quelle scadute (data passata)
+                    if (selectedStr === todayStr) {
+                        return t.dueDate <= todayStr;
                     }
-                    if(groupedMeals[log.meal] !== undefined) {
-                        groupedMeals[log.meal].push(log);
-                    }
-                });
-                
-                Object.keys(mealsOrderAndConfig).forEach(mealName => {
-                    const pastiNelGruppo = groupedMeals[mealName];
-                    
-                    if(pastiNelGruppo && pastiNelGruppo.length > 0) {
-                        const colorePasto = mealsOrderAndConfig[mealName].colore;
-                        
-                        const mealBlock = document.createElement('div');
-                        mealBlock.className = `mb-4 bg-${colorePasto}-50 p-4 rounded-3xl border border-${colorePasto}-100`;
-                        
-                        const mealHeader = document.createElement('div');
-                        mealHeader.className = `text-[10px] font-black uppercase text-${colorePasto}-600 tracking-widest border-b border-${colorePasto}-100 pb-1 mb-2`;
-                        mealHeader.textContent = mealName;
-                        mealBlock.appendChild(mealHeader);
-                        
-                        pastiNelGruppo.forEach(log => {
-                            const itemDiv = document.createElement('div');
-                            itemDiv.className = "flex items-center justify-between py-1.5";
-                            
-                            const kcalFormatted = log.macros ? `${Math.round(log.macros.kcal)} kcal` : '';
-                            
-                            itemDiv.innerHTML = `
-                                <div class="flex flex-col">
-                                    <span class="font-bold text-slate-800 text-sm">${log.notes}</span>
-                                    <span class="text-[10px] text-gray-400 font-bold">${kcalFormatted}</span>
-                                </div>
-                                <button onclick="deleteDietLog('${log.id}')" class="text-slate-300 hover:text-red-400 active:scale-90 transition p-2">
-                                    <i class="fas fa-trash-can"></i>
-                                </button>
-                            `;
-                            mealBlock.appendChild(itemDiv);
-                        });
-                        
-                        container.appendChild(mealBlock);
-                    }
-                });
-            }
-
-            const totalMacros = totalCarbs + totalProteins + totalFats;
-            const percC = totalMacros > 0 ? Math.round((totalCarbs / totalMacros) * 100) : 0;
-            const percP = totalMacros > 0 ? Math.round((totalProteins / totalMacros) * 100) : 0;
-            const percF = totalMacros > 0 ? Math.round((totalFats / totalMacros) * 100) : 0;
-
-            document.getElementById('daily-kcal').textContent = Math.round(totalKcal);
-            document.getElementById('daily-macros-text').innerHTML = `
-                <span class="text-blue-500">C: ${Math.round(totalCarbs)}g (${percC}%)</span> 
-                <span class="text-red-500">P: ${Math.round(totalProteins)}g (${percP}%)</span> 
-                <span class="text-yellow-500">G: ${Math.round(totalFats)}g (${percF}%)</span>
-            `;
-            
-            updateChart('dailyMacroChart', totalCarbs, totalProteins, totalFats, dailyChartInstance, (nuovaIstanza) => {
-                dailyChartInstance = nuovaIstanza;
-            });
-        }
-
-        async function deleteDietLog(id) { 
-            if(confirm("Vuoi eliminare questo alimento dal pasto?")) {
-                await db.collection('users').doc(auth.currentUser.uid).collection('diet_logs').doc(id).delete(); 
-            }
-        }
-
-        function updateChart(canvasId, carbs, proteins, fats, istanzaPrecedente, callbackSalvataggio) {
-            const canvasElement = document.getElementById(canvasId);
-            if (!canvasElement) return;
-            
-            const ctx = canvasElement.getContext('2d');
-            
-            if(istanzaPrecedente) {
-                istanzaPrecedente.destroy();
-            }
-            
-            const isEmpty = (carbs === 0 && proteins === 0 && fats === 0);
-            const dataArray = isEmpty ? [1] : [carbs, proteins, fats];
-            const backgroundColorsArray = isEmpty ? ['#f1f5f9'] : ['#3b82f6', '#ef4444', '#eab308'];
-
-            const nuovoGrafico = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Carboidrati', 'Proteine', 'Grassi'],
-                    datasets: [{ 
-                        data: dataArray, 
-                        backgroundColor: backgroundColorsArray, 
-                        borderWidth: 0, 
-                        cutout: '75%' 
-                    }]
-                },
-                options: { 
-                    plugins: { 
-                        legend: { display: false }, 
-                        tooltip: { enabled: !isEmpty } 
-                    }, 
-                    responsive: true, 
-                    maintainAspectRatio: false 
-                }
-            });
-            
-            callbackSalvataggio(nuovoGrafico);
-        }
-
-        // --- ANALISI SETTIMANALE/GLOBALE ---
-        function toggleAnalysisMode() {
-            currentAnalysisMode = currentAnalysisMode === 'all' ? '7d' : 'all';
-            const modeText = currentAnalysisMode === 'all' ? 'Tutto' : 'Ultimi 7 gg';
-            const btnText = currentAnalysisMode === 'all' ? 'Ultimi 7 gg' : 'Vedi Tutto';
-            
-            document.getElementById('analysis-title').textContent = `Analisi (${modeText})`;
-            document.getElementById('btn-toggle-analysis').textContent = btnText;
-            
-            fetchAndRenderAnalysis();
-        }
-
-        async function fetchAndRenderAnalysis() {
-            const uid = auth.currentUser.uid;
-            let dataInizioStr = null;
-
-            if (currentAnalysisMode === '7d') {
-                const d = new Date();
-                d.setDate(d.getDate() - 6);
-                dataInizioStr = getDateString(d);
-            }
-
-            let queryStatsRef = db.collection('users').doc(uid).collection('daily_stats');
-            let queryPastiRef = db.collection('users').doc(uid).collection('diet_logs');
-
-            if (dataInizioStr) {
-                queryStatsRef = queryStatsRef.where(firebase.firestore.FieldPath.documentId(), '>=', dataInizioStr);
-                queryPastiRef = queryPastiRef.where('date', '>=', dataInizioStr);
-            }
-
-            const [queryStats, queryPasti] = await Promise.all([queryStatsRef.get(), queryPastiRef.get()]);
-            
-            let sumWater = 0;
-            let counterD3 = 0, counterA1Col = 0, counterA1Pra = 0, counterA2 = 0;
-            
-            const giorniAttivi = new Set();
-            
-            queryStats.forEach(doc => {
-                const data = doc.data();
-                const hasStats = data.water > 0 || data.d3 || data.antio1_col || data.antio1_pra || data.antio2;
-                
-                if (hasStats) {
-                    giorniAttivi.add(doc.id);
-                }
-
-                sumWater += data.water || 0;
-                if(data.d3) counterD3++;
-                if(data.antio1_col) counterA1Col++;
-                if(data.antio1_pra) counterA1Pra++;
-                if(data.antio2) counterA2++;
-            });
-            
-            const mediaAntio1 = Math.round((counterA1Col + counterA1Pra) / 2);
-
-            let sumKcal = 0, sumC = 0, sumP = 0, sumF = 0;
-            
-            queryPasti.forEach(doc => {
-                const data = doc.data();
-                const mac = data.macros;
-                
-                if(mac) { 
-                    sumKcal += mac.kcal; 
-                    sumC += mac.c; 
-                    sumP += mac.p; 
-                    sumF += mac.f; 
-                    
-                    if (mac.kcal > 0 || mac.c > 0 || mac.p > 0 || mac.f > 0) {
-                        giorniAttivi.add(data.date);
-                    }
+                    // Altrimenti visualizzo solo il giorno selezionato
+                    return t.dueDate === selectedStr;
                 }
             });
 
-            const giorniTracciati = giorniAttivi.size > 0 ? giorniAttivi.size : 1;
+            // Ordine: Prima le più vecchie
+            visibleTodos.sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
-            const mediaKcalGiornaliera = Math.round(sumKcal / giorniTracciati);
-            const mediaAcquaGiornaliera = sumWater / giorniTracciati;
+            if(visibleTodos.length === 0) {
+                container.innerHTML = `<p class="text-center text-gray-400 py-6 text-sm">${isShowingArchived ? "Nessuna task archiviata." : "Nessuna task per questa giornata."}</p>`;
+                return;
+            }
 
-            document.getElementById('weekly-avg-kcal').textContent = mediaKcalGiornaliera;
-            document.getElementById('weekly-avg-water').textContent = (mediaAcquaGiornaliera / 1000).toFixed(2) + " L";
-            
-            document.getElementById('weekly-d3').textContent = `${counterD3} gg`;
-            document.getElementById('weekly-a1').textContent = `${mediaAntio1} gg`;
-            document.getElementById('weekly-a2').textContent = `${counterA2} gg`;
+            visibleTodos.forEach(t => {
+                const isOverdue = !isShowingArchived && t.dueDate < todayStr;
+                
+                const div = document.createElement('div');
+                div.className = `bg-white p-4 rounded-2xl shadow-sm border ${isOverdue ? 'border-red-200 bg-red-50/30' : 'border-slate-100'} cursor-pointer transition active:scale-[0.98]`;
+                div.onclick = () => openTodoModal(t.id);
 
-            const totalMacros = sumC + sumP + sumF;
-            const percC = totalMacros > 0 ? Math.round((sumC / totalMacros) * 100) : 0;
-            const percP = totalMacros > 0 ? Math.round((sumP / totalMacros) * 100) : 0;
-            const percF = totalMacros > 0 ? Math.round((sumF / totalMacros) * 100) : 0;
+                const displayDate = t.dueDate.split('-').reverse().slice(0,2).join('/');
+                const badge = isOverdue ? `<span class="bg-red-100 text-red-700 text-[9px] font-black px-2 py-0.5 rounded uppercase">Scaduta</span>` : '';
+                
+                // Conto i sottotask completati
+                let subText = '';
+                if (t.subtasks && t.subtasks.length > 0) {
+                    const doneCount = t.subtasks.filter(st => st.done).length;
+                    subText = `<div class="text-[10px] font-bold text-gray-400 mt-1"><i class="fas fa-list-check mr-1"></i> ${doneCount}/${t.subtasks.length} Sottotask</div>`;
+                }
 
-            document.getElementById('weekly-macros-text').innerHTML = `
-                <span class="text-blue-500">C: ${Math.round(sumC / giorniTracciati)}g (${percC}%)</span> 
-                <span class="text-red-500">P: ${Math.round(sumP / giorniTracciati)}g (${percP}%)</span> 
-                <span class="text-yellow-500">G: ${Math.round(sumF / giorniTracciati)}g (${percF}%)</span>
-            `;
-            
-            updateChart('weeklyMacroChart', sumC, sumP, sumF, weeklyChartInstance, (nuovaIstanza) => {
-                weeklyChartInstance = nuovaIstanza;
+                div.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <div class="text-[10px] font-bold bg-slate-100 text-gray-500 px-2 py-0.5 rounded-lg">${displayDate}</div>
+                                ${badge}
+                            </div>
+                            <div class="font-bold text-slate-900 ${t.archived ? 'line-through text-gray-500' : ''}">${t.title}</div>
+                            ${subText}
+                        </div>
+                        ${t.archived ? '<i class="fas fa-check-circle text-emerald-500 text-xl"></i>' : ''}
+                    </div>
+                `;
+                container.appendChild(div);
             });
         }
 
-        function openAnalysisModal() {
-            const modal = document.getElementById('analysis-modal');
+        function openTodoModal(id = null) { 
+            const modal = document.getElementById('todo-modal'); 
             modal.classList.remove('hidden'); 
             modal.classList.add('flex');
             setTimeout(() => modal.classList.replace('opacity-0', 'opacity-100'), 10);
+            
+            const delBtn = document.getElementById('btn-delete-todo');
+            
+            if(id) { 
+                const t = todos.find(x => x.id === id); 
+                document.getElementById('todo-modal-title').textContent = "Modifica Task";
+                document.getElementById('todo-id').value = t.id; 
+                document.getElementById('todo-title').value = t.title; 
+                document.getElementById('todo-desc').value = t.desc || ''; 
+                document.getElementById('todo-date').value = t.dueDate; 
+                document.getElementById('todo-archived').checked = t.archived || false; 
+                
+                currentSubtasks = t.subtasks ? JSON.parse(JSON.stringify(t.subtasks)) : [];
+                delBtn.classList.remove('hidden');
+            } else { 
+                document.getElementById('todo-modal-title').textContent = "Nuova Task";
+                document.getElementById('todo-id').value = ''; 
+                document.getElementById('todo-title').value = ''; 
+                document.getElementById('todo-desc').value = ''; 
+                document.getElementById('todo-date').value = getDateString(currentTodoDate); 
+                document.getElementById('todo-archived').checked = false; 
+                
+                currentSubtasks = [];
+                delBtn.classList.add('hidden');
+            }
 
-            fetchAndRenderAnalysis();
+            renderSubtasksUI();
         }
 
-        function closeAnalysisModal() {
-            const modal = document.getElementById('analysis-modal');
-            modal.classList.replace('opacity-100', 'opacity-0');
+        function closeTodoModal() { 
+            const modal = document.getElementById('todo-modal');
+            modal.classList.replace('opacity-100', 'opacity-0'); 
             setTimeout(() => { 
                 modal.classList.add('hidden'); 
                 modal.classList.remove('flex'); 
-            }, 300);
+                document.getElementById('subtask-title').value = '';
+                document.getElementById('subtask-date').value = '';
+            }, 300); 
+        }
+
+        // Funzioni per Sottotask interni alla Modale
+        function renderSubtasksUI() {
+            const list = document.getElementById('todo-subtasks-list');
+            list.innerHTML = '';
+            
+            if (currentSubtasks.length === 0) {
+                list.innerHTML = '<p class="text-[10px] text-gray-400 italic">Nessun sottotask registrato.</p>';
+                return;
+            }
+
+            currentSubtasks.forEach((st, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between gap-2 p-2 bg-white rounded-xl border border-slate-100";
+                
+                const dateDisplay = st.date ? `<span class="text-[9px] bg-slate-100 px-1 rounded font-bold">${st.date.split('-').reverse().slice(0,2).join('/')}</span>` : '';
+
+                div.innerHTML = `
+                    <div class="flex items-center gap-2 flex-1 cursor-pointer" onclick="toggleSubtaskStatus(${index})">
+                        <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center ${st.done ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300'}">
+                            ${st.done ? '<i class="fas fa-check text-white text-[10px]"></i>' : ''}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold ${st.done ? 'line-through text-gray-400' : 'text-slate-800'}">${st.title}</span>
+                            ${dateDisplay}
+                        </div>
+                    </div>
+                    <button onclick="removeSubtask(${index})" class="text-slate-300 hover:text-red-500 p-1">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function addSubtaskFromUI() {
+            const titleInput = document.getElementById('subtask-title');
+            const dateInput = document.getElementById('subtask-date');
+            
+            if(!titleInput.value.trim()) return;
+
+            currentSubtasks.push({
+                title: titleInput.value.trim(),
+                date: dateInput.value,
+                done: false
+            });
+
+            titleInput.value = '';
+            dateInput.value = '';
+            renderSubtasksUI();
+        }
+
+        function removeSubtask(index) {
+            currentSubtasks.splice(index, 1);
+            renderSubtasksUI();
+        }
+
+        function toggleSubtaskStatus(index) {
+            currentSubtasks[index].done = !currentSubtasks[index].done;
+            renderSubtasksUI();
+        }
+
+        // Salvataggio Todo Completo
+        async function saveTodo() {
+            const id = document.getElementById('todo-id').value;
+            const title = document.getElementById('todo-title').value.trim();
+            const desc = document.getElementById('todo-desc').value;
+            const dueDate = document.getElementById('todo-date').value;
+            const isArchived = document.getElementById('todo-archived').checked;
+            
+            if(!title || !dueDate) {
+                return alert("Inserisci un titolo e una data di scadenza");
+            }
+            
+            const dataToSave = { 
+                title: title, 
+                desc: desc,
+                dueDate: dueDate,
+                archived: isArchived,
+                subtasks: currentSubtasks,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const collectionRef = db.collection('users').doc(auth.currentUser.uid).collection('todos');
+            
+            if(id) {
+                await collectionRef.doc(id).update(dataToSave);
+            } else {
+                await collectionRef.add(dataToSave);
+            }
+            
+            closeTodoModal();
+        }
+
+        async function deleteTodo() { 
+            if(confirm("Sei sicuro di voler eliminare definitivamente questa task?")) {
+                const idToDelete = document.getElementById('todo-id').value;
+                await db.collection('users').doc(auth.currentUser.uid).collection('todos').doc(idToDelete).delete(); 
+                closeTodoModal(); 
+            }
         }
 
         // PUNTO A: Script per attivare il Service Worker
